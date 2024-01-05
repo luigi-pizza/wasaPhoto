@@ -1,273 +1,866 @@
-openapi: 3.0.0
+openapi: 3.0.3
+info:
+  title: WasaPhotoAPI Specification
+  description: |
+    This OpenAPI document describes the WasaPhoto project REST API.
+
+    WasaPhoto aims to be a popular social media platform that focuses on photo 
+    sharing. Its development started in Autumn 2023, as a project for the course
+    "WASA - Web and software architecture".
+
+    For additional info check the [project webpage](http://gamificationlab.uniroma1.it/notes/Project.pdf).
+  version: "1.0.0"
+
 servers:
   - url: "http://localhost:3000"
-info:
-  title: Fantastic Coffee (decaffeinated)
-  description: Fantastic Coffee (decaffeinated), the skeleton project for Web and Software architecture course
-  version: 1.0.0
+    description: localhost server, for development purposses.
+
+tags:
+  - name: session
+    description: Operations related to session management.
+  - name: user
+    description: Operations related to profile management and users' search.  
+  - name: ban
+    description: Operations related to bans/pardons.
+  - name: follow
+    description: Operations related to follow status management.
+  - name: files
+    description: Operations related to files and photos upload and management.
+  - name: likes
+    description: Operations related to management of likes.
+  - name: comments
+    description: Operations related to management of comments.
+
+
 paths:
-  /status:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-    get:
-      tags: ["General"]
-      operationId: getStatusMessage
-      summary: Get status message for the user about issues / updates
-      description: |-
-        The response contains a status message meant for the user. It might
-        contains information about current technical issues, update messages
-        or general information.
+  /session:
+    description: endpoint enabling login.
+    post:
+      tags: ["session"]
+      summary: Logs in the user
+      description: |
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+
+        The user identifier can authenticate subsequent requests.
+      security: []
+      
+      operationId: doLogin
+      requestBody:
+        description: User login details.
+        required: true
+        content:
+          application/json:
+            schema:
+              description: |
+                User Login-Request, containing the user's username.
+                The response will contain an appropriate user identifier.
+              properties:
+                username: { $ref: "#/components/schemas/Username" }
+    
       responses:
         "200":
-          description: Status message available
+          description: User already exists, returns user identifier.
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/StatusInfo"
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-
-  /:
-    get:
-      tags: ["Group 1"]
-      operationId: index
-      summary: Get an index
-      description: |-
-        This is an example of an index API description
-      responses:
-        "200":
-          description: Successful
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-  /context:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-    post:
-      tags: ["Group 1"]
-      operationId: getContext
-      summary: Another API example
-      description: |-
-        Example description 2
-      responses:
-        "200":
-          description: Request ok
-          headers:
-            X-Access-Token:
-              description: Access token for authenticated requests
-              schema: { type: string }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-  /authenticated:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-    get:
-      tags: ["Group 2"]
-      operationId: getAuthenticatedExample
-      summary: Get an endpoint with authentication
-      description: |-
-        Get an endpoint with auth
-      security:
-        - LegacyAuth: []
-        - AppToken: []
-      responses:
-        "200":
-          description: Logout successful
-        "500": { $ref: "#/components/responses/InternalServerError" }
-
-  /pictures/{cat}:
-    parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-      - $ref: "#/components/parameters/cat"
-    get:
-      tags: ["Cat pictures"]
-      operationId: getCatFromPicture
-      summary: Example of a parameter in URL
-      description: |-
-        Example of a parameter in URL
-      security:
-        - LegacyAuth: []
-      responses:
-        "200":
-          description: Student picture found
+              schema: { $ref: "#/components/responses/LoginResponse" }
+        "201":
+          description: successful registration of a new user, returns user identifier.
           content:
-            image/png:
-              schema:
-                type: string
-                format: binary
-              example: Picture binary file
-        "404":
-          description: Student picture not found
-        "500": { $ref: "#/components/responses/InternalServerError" }
+            application/json:
+              schema: { $ref: "#/components/responses/LoginResponse" }
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
 
-  /autofeeder/{cat}:
+  /users/:
+    description: endpoint disclosing the users' collection.
+    get:
+      tags: ["user"]
+      summary: Search users' collection.
+      description: |
+        Search users through a complete or partial match of their usernames.
+
+        Not required by project specifications.
+        An authenticated session is requested to perform this action, 
+        due to privacy and ban-related reasons.
+
+      operationId: SearchUsers
+      parameters:
+        - name: username
+          in: query
+          description: Complete or partial username
+          required: true
+          schema: { $ref: "#/components/schemas/Username" }
+
+      responses:
+        "200": { $ref: "#/components/responses/UserListResponse" }
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+      
+
+  /users/{userID}:
+    description: endpoint disclosing actions on an user-profile resource, identified by their UserID.
     parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
-      - $ref: "#/components/parameters/cat"
+      - $ref: "#/components/parameters/UserID"
+    get:
+      tags: ["user"]
+      summary: get a user's profile given the user Identifier.
+      description: |
+        get a user's profile details given their user identifier.
+        The remaining content of the profile, including the photos,
+        must be requested through the dedicated endpoint.
+
+        An authenticated session is requested to perform this action, 
+        due to privacy and ban-related reasons.
+
+      operationId: getUserProfile
+      responses:
+        "200":
+          description: user was found and profile details returned.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+
+  /users/{userID}/photos/:
+    description: endpoint disclosing actions on an user's photos collection.
+    parameters:
+      - $ref: "#/components/parameters/UserID"
+    get:
+      tags: ["files"]
+      summary: get an user's photos given the user Identifier.
+      description: |
+        get an user's photos given their user identifier, using paginated
+        requests.
+
+        An authenticated session is requested to perform this action, 
+        due to privacy and ban-related reasons.
+
+      operationId: getUserPhotos
+      parameters:
+        - $ref: "#/components/parameters/PaginationCursorParameter"
+      responses:
+        "200":
+          description: user was found and photos returned.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PostList" }
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+
+  /users/self:
+    description: endpoint disclosing actions on the authenticated user's resource.
     put:
-      tags: ["Autofeeder"]
-      operationId: createCatAutofeeder
-      summary: Example of PUT operation
-      security:
-        - LegacyAuth: []
-      responses:
-        "200":
-          description: Auto feed enabled
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-    delete:
-      tags: ["Autofeeder"]
-      operationId: deleteCatAutofeeder
-      summary: Example of DELETE operation
-      security:
-        - LegacyAuth: []
-      responses:
-        "200":
-          description: Auto feed disabled
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+      tags: ["user"]
+      summary: Update current user details.
+      description: |
+        Update the authenticated user details, such as name, surname, bio, username.
 
-  /session/login:
+        An authenticated session is requested to perform this action, 
+        in order to select the correct resource.
+      
+      operationId: setMyDetails
+      requestBody:
+        description: Fields to update in the current user's resource
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/User" }
+
+      responses:
+        "200": 
+          description: user details successfully modified.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "403":
+          description: the request tried to modify the username, but the inserted username is already in use.
+          content:
+            application/json:
+              schema: { $ref: "#/components/responses/ForbiddenError" }
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+  
+
+  /users/self/followedUsers/{userID}:
+    description: endpoint disclosing actions on the authenticated user's followed users resources.
     parameters:
-      - $ref: "#/components/parameters/XAppBuild"
-      - $ref: "#/components/parameters/XAppVersion"
-      - $ref: "#/components/parameters/XAppLanguage"
-      - $ref: "#/components/parameters/XAppPlatform"
+      - $ref: "#/components/parameters/UserID"
+    put:
+      tags: ["follow"]
+      summary: Follow an user.
+      description: |
+        Add the user identified by "UserID" to your followed_Users collection.
+
+        An authenticated session is requested to perform this action, 
+        in order to select the correct resource and for
+        privacy-ban related operations.
+
+      operationId: followUser
+      responses:
+        "204":
+          description: |
+            the user was found, and you are now following this user.
+            If you were already following the user, this status will not be modified.
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+    delete:
+      tags: ["follow"]
+      summary: Unfollow a user.
+      description: |
+        Remove the user identified by "UserID" from your followed_Users collection.
+
+        An authenticated session is requested to perform this action, 
+        in order to select the correct resource.
+
+      operationId: unfollowUser
+      responses:
+        "204":
+          description: |
+            the user was found, and you aren't following this user anymore.
+            If you already weren't following the user, this status will not be modified.
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /users/self/bannedUsers/{userID}:
+    description: endpoint disclosing actions on the authenticated user's banned users resources.
+    parameters:
+      - $ref: "#/components/parameters/UserID"
+    put:
+      tags: ["ban"]
+      summary: Ban an user.
+      description: |
+        Add the user identified by "UserID" to your Banned_Users collection.
+
+        An authenticated session is requested to perform this action, 
+        in order to select the correct resource.
+
+      operationId: banUser
+      responses:
+        "204":
+          description: |
+            the user was found, and this user is now banned from accessing your content.
+            If the user was already banned, this status will not be modified.
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+    delete:
+      tags: ["ban"]
+      summary: Pardon an user.
+      description: |
+        Remove the user identified by "UserID" from your banned_Users collection.
+
+        An authenticated session is requested to perform this action, 
+        in order to select the correct resource.
+
+      operationId: unbanUser
+      responses:
+        "204":
+          description: |
+            the user was found, and this user is now pardoned and can access your content.
+            If the user wasn't banned, this status will not be modified.
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+
+  /photos/:
+    description: endpoint disclosing actions on posting in user's photos collection.
     post:
-      tags: ["Session management"]
-      operationId: login
-      summary: Log-in into system
-      description: |-
-        Perform a log-in action using username and password credentials.
-        Returns a token which can be used in authenticated requests.
+      tags: ["files"]
+      summary: post a photo
+      description: |
+        Post a new photo in your personal account.
+
+        An authenticated session is requested to perform this action,
+        in order to select the correct resource.
+      
+      operationId: uploadPhoto
       requestBody:
         content:
-          application/x-www-form-urlencoded:
+          image/*:
             schema:
-              type: object
-              properties:
-                userid:
-                  type: string
-                  pattern: '^[a-zA-Z0-9]+$'
-                  minLength: 3
-                  maxLength: 255
-                password:
-                  type: string
-                  pattern: '^.*?$'
-                  minLength: 8
-                  maxLength: 255
+              description: Photo to upload, as binary file.
+              type: string
+              format: binary
+              minLength: 16384    # 16 kB
+              maxLength: 10485760 # 10 MB
+              # If I have time I'd like to implement other stuff
+              # https://swagger.io/docs/specification/describing-request-body/file-upload/
+      responses:
+        "201":
+          description: successful creation of the post, returns the photo resource.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Post" }
+        "415":
+          description: the file can't be interpreted as an image.
+          content:
+            text/plain:
+              schema: { $ref: "#/components/schemas/Error" }
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+        
+        
+  /photos/{PostID}:
+    description: endpoint disclosing actions on deletion of a photo resource.
+    parameters:
+      - $ref: "#/components/parameters/PostID"
+    get:
+      tags: ["files"]
+      summary: Return the binary file composing the photo.
+      description: |
+        Get the binary file of photo contents.
+
+        An authenticated session is requested to perform this action,
+        for privacy-ban related reasons.
+      
+      operationId: getPhoto
       responses:
         "200":
-          description: Login successful
-          headers:
-            X-Access-Token:
-              description: Access token for authenticated requests
-              schema: { type: string }
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "403":
-          description: Login failed
-          headers:
-            X-Message:
-              description: Error message
-              schema: { type: string }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+          description: |
+            the post was found, and this response contains the photo.
+          content: 
+            image/*:
+              schema:
+                description: Photo to download, as binary file.
+                type: string
+                format: binary
+                minLength: 16384    # 16 kB
+                maxLength: 10485760 # 10 MB
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+    delete:
+      tags: ["files"]
+      summary: delete a photo.
+      description: |
+        Delete a photo from your personal account.
+
+        An authenticated session is requested to perform this action,
+        for privacy-ban related reasons.
+      
+      operationId: deletePhoto
+      responses:
+        "204":
+          description: |
+            Either the post was found, and it was successfully deleted,
+            or it didn't exist in the first place.
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "403": { $ref: "#/components/responses/ForbiddenError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+
+  /photos/{PostID}/likes/{userID}:
+    description: endpoint disclosing actions on the likes of a photo resource.
+    parameters:
+      - $ref: "#/components/parameters/PostID"
+      - $ref: "#/components/parameters/UserID"
+    put:
+      tags: ['likes']
+      summary: like a photo
+      description: |
+        Like a photo from your personal account.
+
+        An authenticated session is requested to perform this action,
+        in order to select the correct resource.
+      
+      operationId: likePhoto
+      responses:
+        "204":
+          description: |
+            the photo was found, the sender had permission to put the like and
+            the like was saved. If the like was already present in the system, 
+            this status will not be modified (idempotent).
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "403": { $ref: "#/components/responses/ForbiddenError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+  
+    delete:
+      tags: ['likes']
+      summary: unlike a photo
+      description: |
+        unLike a photo from your personal account.
+
+        An authenticated session is requested to perform this action,
+        in order to select the correct resource.
+      
+      operationId: unlikePhoto
+      responses:
+        "204":
+          description: |
+            the photo was found, the sender had permission to delete the like and
+            the like was deleted. If the like wasn't present in the system, 
+            this status will not be modified (idempotent).
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "403": { $ref: "#/components/responses/ForbiddenError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+
+  /photo/{PostID}/comments/:
+    description: endpoint disclosing generic actions on the comments of a photo resource.
+    parameters:
+      - $ref: "#/components/parameters/PostID"
+    get:
+      tags: ['comments']
+      summary: get the comments of a photo.
+      description: |
+        Receive the comments under a post, in reverse chronological order,
+        using pagination.
+
+        An authenticated session is requested to perform this action,
+        in order to select the correct resource and for privacy-ban related
+        reasons.
+      
+      operationId: getComment
+      responses: 
+        "200": { $ref: "#/components/responses/CommentListResponse" }
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+    post:
+      tags: ['comments']
+      summary: comment on a photo
+      description: |
+        Comment on a photo from your personal account.
+
+        An authenticated session is requested to perform this action,
+        in order to select the correct resource.
+      
+      operationId: commentPhoto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CommentString" }
+
+      responses:
+        "201":
+          description: |
+            the photo was found, the sender had permission to comment and
+            the comment was created.
+          
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        # No 403.
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+  
+
+  /photo/{PostID}/comments/{commentID}:
+    description: endpoint disclosing deletion actions on the comments of a photo resource.
+    parameters:
+      - $ref: "#/components/parameters/PostID"
+      - $ref: "#/components/parameters/CommentID"
+    delete:
+      tags: ['comments']
+      summary: delete a comment of a photo.
+      description: |
+        Delete a comment under a photo from your personal account.
+
+        An authenticated session is requested to perform this action,
+        in order to select the correct resource.
+      
+      operationId: uncommentPhoto
+      responses: 
+        "204": 
+          description: the comment was deleted.
+        "400": { $ref: "#/components/responses/BadRequestError" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        "403": { $ref: "#/components/responses/ForbiddenError" }
+        "404": { $ref: "#/components/responses/NotFoundError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+
+  /myStream:
+    description: endpoint allowing an authenticated user to fetch its photo stream.
+    get:
+      tags: ["user"]
+      operationId: getMyStream
+      summary: Get the authenticated user post stream.
+      description: |
+        Get the authenticated user post stream. It will contain the posts
+        of the profiles you are following, in reverse chronological order.
+
+        An authenticated session is requested to perform this action,
+        in order to select the correct resource and for privacy reasons.
+
+      parameters:
+        - $ref: "#/components/parameters/PaginationCursorParameter"
+      responses:
+        "200": { $ref: "#/components/responses/PostListResponse" }
+        "401": { $ref: "#/components/responses/AuthorizationError" }
+        # No 403.
+        # No 404.
+        "500": { $ref: "#/components/responses/ServerError" }
+  
+
+
+
+
 
 
 components:
-  schemas:
-    StatusInfo:
-      title: Status Info
-      type: object
-      properties:
-        status:
-          type: string
-          enum:
-            - info
-            - warning
-            - critical
-            - ""
-        title: { type: string }
-        message: { type: string }
-        url: { type: string }
+  parameters:
+    UserID:
+      description: |
+        Value representing the unique identifier of an user.
+        The UserID is employed whenever information or actions on a generic
+        user is requested by the sender, for example listing the user details,
+        following/banning a user.
+
+      name: userID
+      required: true
+      in: path
+      schema: { $ref: "#/components/schemas/ResourceId" }
+
+
+    PostID:
+      description: |
+        Value representing the unique identifier of an photo.
+        The PostID is employed whenever information or actions on a generic
+        post is requested by the sender, for example listing the post details,
+        liking/commenting a post.
+
+      name: postID
+      required: true
+      in: path
+      schema: { $ref: "#/components/schemas/ResourceId" }
+    
+    CommentID:
+      description: |
+        Value representing the unique identifier of a comment.
+        The CommentID is employed whenever information or actions on a generic
+        comment is requested by the sender, for example deletion of a comment.
+
+      name: commentID
+      required: true
+      in: path
+      schema: { $ref: "#/components/schemas/ResourceId" }
+    
+
+    PaginationCursorParameter:
+      name: paginationCursor
+      description: |
+        reference to latest resource consumed by the client.
+        If the client hasn't previously received anything, the parameter may not be present.
+
+      required: false 
+      in: query
+      schema: { $ref:"#/components/schemas/PaginationCursor" }
+
+      
 
   responses:
-    Unauthorized:
-      description: The access token is missing or it's expired
-    BadRequest:
-      description: The request was not compliant with the documentation (eg. missing fields, etc)
-    InternalServerError:
-      description: The server encountered an internal error. Further info in server logs
+    BadRequestError:
+      description: request not compliant with REST API specifications.
+      content:
+        text/plain:
+          schema: { $ref: "#/components/schemas/Error" }
+
+    ServerError:
+      description: an unexpected condition was encountered while handling the request.
+      content:
+        text/plain:
+          schema: { $ref: "#/components/schemas/Error" }
+
+    AuthorizationError:
+      description: |
+        An authenticated session is requested to access this endpoint,
+        but no valid authentication was included in the request.
+      content:
+        text/plain:
+          schema: { $ref: "#/components/schemas/Error" }
+    
+    ForbiddenError:
+      description: |
+        An authenticated session is needed to access this endpoint,
+        and a valid authentication was included in the request,
+        but the server is refusing action due to either a lack of the 
+        necessary permissions for handling the requested resource or 
+        because the user was attempting a prohibited action.
+      content:
+        text/plain:
+          schema: { $ref: "#/components/schemas/Error" }
+    
+    NotFoundError:
+      description: |
+        the resource was not found: 
+        - if searching for a user: the UserID doesn't exist or the User exists 
+          and has banned the searcher. 
+        - if searching for a photo: the PostID doesn't exist or the post exists 
+          and the user who has made the post has banned the searcher.
+        - if searching for a comment: the PostID or the commentID don't exist, or they
+          exist and the user who has made the post or the comment has banned the searcher. 
+        An error is returned.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+    LoginResponse:
+      description: |
+        returns auth details. Through this data, messages sent by users can be proven to be genuine
+        at the server, therefore authenticating the user.
+
+        At the moment, as per project specification, authentication is achieved through a 
+        simplified login. The auth details returned by the server will consist in a Bearer Authorization 
+        Token to insert in the Authorization header of the requests.
+
+        The Bearer Authorization Token consists of the user's UserId.
+      content: 
+        application/json:
+          schema: { $ref: "#/components/schemas/ResourceId" }
+
+
+    UserListResponse:
+      description: |
+        returns a list of users to be displayed at the client.
+        The array may or may not contain elements.
+
+      content: 
+        application/json:
+          schema: { $ref: "#/components/schemas/UserList" }
+    
+    PostListResponse:
+      description: |
+        returns a list of posts to be displayed at the client.
+        The array may or may not contain elements.
+
+      content: 
+        application/json:
+          schema: { $ref: "#/components/schemas/PostList" }
+
+    CommentListResponse:
+      description: |
+        returns a list of comments to be displayed at the client.
+        The array may or may not contain elements.
+
+      content: 
+        application/json:
+          schema: { $ref: "#/components/schemas/CommentList" }
+
+
+  schemas:
+    Error:
+      description: Structure of an Error response.
+      type: string
+      minLength: 0
+      maxLength: 250
+      readOnly: True
+
+    Username:
+        type: string
+        example: dead.b33f_03
+        pattern: "([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\\.(?!\\.))){1,28}(?:[A-Za-z0-9_]))?)"
+        minLength: 3
+        maxItems: 30
+        description: |
+          User's personal and unique username, used during login. It has the follwing properties:
+          - Matches with one . in them @disco.dude but not two .. @disco..dude
+          - Beginning period not matched @.discodude
+          - Ending period not matched @discodude.
+          - Match underscores _ @_disco__dude_
+          - Max characters of 30 @1234567890123456789012345678901234567890
+          - When searching among users the server will accept a similarly constructed string of length >= 3
+          - When setting an username the server will accept a similarly constructed string of length >= 5
+
+
+    ResourceId:
+      description: |
+        The Unique Resource Id of an element, be it an user, photo or comment.
+    
+      type: string
+      example: "0123456789abcdef0123456789abcdef"
+      readOnly: true
+      minLength: 32
+      maxLength: 32
+      pattern: "^[0-9a-f]{32}$"
+
+
+    User:
+      description: |
+        Resource representing an user. It contains all relevant information
+        about the user, including:
+        - his User-Id, enabling the user to get to that user's profile.
+        - Information about his profile: name, surname, bio, numberOfPosts, numeberOfFollowers, accountsFollowed
+        - Effective information for the user: isBanned, isFollowed.
+      
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/ResourceId" }
+        username: { $ref: "#/components/schemas/Username" }
+        name:
+          description: the name of the user.
+          type: string
+          example: Maria
+          pattern: "^.*?$"
+          minLength: 2
+          maxLength: 64
+        surname:
+          description: the surname of the user.
+          type: string
+          example: Smith
+          pattern: "^.*?$"
+          minLength: 2
+          maxLength: 64
+        Bio:
+          description: the biography of the user.
+          type: string
+          example: |
+            Hi, I'm Maria Smith.
+            I study at Sapienza.
+          minLength: 0
+          maxLength: 1000
+          default: ""
+        numeberOfFollowers:
+          description: the number of users following the account.
+          type: integer
+          readOnly: true
+          minimum: 0
+          example: 200
+        accountsFollowed:
+          description: the number of users the account follows.
+          type: integer
+          readOnly: true
+          minimum: 0
+          example: 250
+        numberOfPosts:
+          description: the number of posts the account has made.
+          type: integer
+          readOnly: true
+          minimum: 0
+          example: 10
+        isBanned:
+          description: is the user banned by the account making the API call?
+          type: boolean
+          readOnly: true
+          example: false
+        isFollowed:
+          description: is the user being followed by the account making the API call?
+          type: boolean
+          readOnly: true
+          example: true
+      
+    UserList:
+      description: |
+        an array of Users, to be displayed in search queries.
+      type: array
+      items: { $ref: "#/components/schemas/User" }
+      minItems: 0
+      maxItems: 24
+
+
+    Post:
+      description: |
+        Resource representing a post. It contains all relevant information
+        about the post, including:
+        
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/ResourceId" }
+        author: { $ref: "#/components/schemas/User" }
+        likes:
+          description: likes this post received
+          type: integer
+          minimum: 0
+          example: 3000
+          readOnly: true
+        comments:
+          description: comments this post received
+          type: integer
+          minimum: 0
+          example: 3000
+          readOnly: true
+        isLiked:
+          description: has the post been liked by the account making the API call?
+          type: boolean
+          readOnly: true
+
+
+    PostList:
+      description: |
+        an array of Posts, to be displayed at the client.
+      type: array
+      items: { $ref: "#/components/schemas/Post" }
+      minItems: 0
+      maxItems: 24
+          
+
+    CommentString:
+      description: a comment without metadata
+      type: object
+      properties:
+        text:
+          description: String composing comment.
+          type: string
+          minLength: 1
+          maxLength: 400
+          example: first!
+          pattern: ".+"
+
+
+    Comment:
+      description: a comment under a post
+      allOf:
+        - type: object
+          properties:
+            id: { $ref: "#/components/schemas/ResourceId" }
+            author: { $ref: "#/components/schemas/User" }
+        - $ref: "#/components/schemas/CommentString"
+    
+
+    CommentList:
+      description: |
+        an array of Posts, to be displayed at the client.
+      type: array
+      items: { $ref: "#/components/schemas/Comment" }
+      minItems: 0
+      maxItems: 24
+
+
+    PaginationCursor:
+      type: string
+      description: pagination cursor of the rquest. If null, starting content is returned 
+      nullable: true
+
 
   securitySchemes:
-    LegacyAuth:
-      type: apiKey
-      in: header
-      name: X-App-Token
-      description: |-
-        App session token value. This value is sent by the server in the login
-        and session refresh APIs.
+    UserIdAuth:
+      description: |
+        User authentication with the user ID passed
+        as it would be an authentication token.
+        Of course, that's extremely insecure, but it's done
+        according to the project specification.
+      type: http
+      scheme: bearer
 
-  parameters:
-    XAppVersion:
-      schema:
-        type: string
-        pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
-        minLength: 1
-        maxLength: 10
-      name: X-App-Version
-      in: header
-      required: true
-      description: App human readable version ("semantic version" format)
-      allowEmptyValue: false
-    XAppBuild:
-      schema: { type: integer }
-      name: X-App-Build
-      in: header
-      required: true
-      description: App build number
-      allowEmptyValue: false
-    XAppLanguage:
-      schema:
-        type: string
-        pattern: '^[a-z]{2}([-_][A-Z]{2})?$'
-        minLength: 2
-        maxLength: 5
-      name: X-App-Language
-      in: header
-      required: true
-      description: App language in ISO 639-1 format
-      allowEmptyValue: false
-    XAppPlatform:
-      schema:
-        type: string
-        enum: [ios, android]
-      name: X-App-Platform
-      in: header
-      required: true
-      description: App operating system / platform
-      allowEmptyValue: false
-    cat:
-      schema:
-        type: string
-        pattern: '^[a-zA-Z]+$'
-        minLength: 3
-        maxLength: 10
-      name: cat
-      in: path
-      required: true
-      description: Cat
-      allowEmptyValue: false
+# Apply security scheme globally
+security:
+  - UserIdAuth: []
