@@ -321,7 +321,7 @@ paths:
         "500": { $ref: "#/components/responses/ServerError" }
         
         
-  /photos/{PostID}:
+  /photos/{postID}:
     description: endpoint disclosing actions on deletion of a photo resource.
     parameters:
       - $ref: "#/components/parameters/PostID"
@@ -372,7 +372,7 @@ paths:
         "500": { $ref: "#/components/responses/ServerError" }
 
 
-  /photos/{PostID}/likes/{userID}:
+  /photos/{postID}/likes/{userID}:
     description: endpoint disclosing actions on the likes of a photo resource.
     parameters:
       - $ref: "#/components/parameters/PostID"
@@ -422,7 +422,7 @@ paths:
         "500": { $ref: "#/components/responses/ServerError" }
 
 
-  /photo/{PostID}/comments/:
+  /photo/{postID}/comments/:
     description: endpoint disclosing generic actions on the comments of a photo resource.
     parameters:
       - $ref: "#/components/parameters/PostID"
@@ -474,7 +474,7 @@ paths:
         "500": { $ref: "#/components/responses/ServerError" }
   
 
-  /photo/{PostID}/comments/{commentID}:
+  /photo/{postID}/comments/{commentID}:
     description: endpoint disclosing deletion actions on the comments of a photo resource.
     parameters:
       - $ref: "#/components/parameters/PostID"
@@ -574,7 +574,7 @@ components:
 
       required: false 
       in: query
-      schema: { $ref:"#/components/schemas/PaginationCursor" }
+      schema: { $ref: "#/components/schemas/PaginationCursor" }
 
       
 
@@ -821,7 +821,7 @@ components:
           description: String composing comment.
           type: string
           minLength: 1
-          maxLength: 400
+          maxLength: 2000
           example: first!
           pattern: ".+"
 
