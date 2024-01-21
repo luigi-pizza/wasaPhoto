@@ -71,6 +71,8 @@ paths:
             application/json:
               schema: { $ref: "#/components/responses/LoginResponse" }
         "400": { $ref: "#/components/responses/BadRequestError" }
+        # No 403: User not logged in
+        # No 404: User not logged in
         "500": { $ref: "#/components/responses/ServerError" }
 
 
@@ -96,6 +98,8 @@ paths:
 
       responses:
         "200": { $ref: "#/components/responses/UserListResponse" }
+        # No 403: User will not see banned users
+        # No 404: Empty UserListResponse
         "400": { $ref: "#/components/responses/BadRequestError" }
         "500": { $ref: "#/components/responses/ServerError" }
       
@@ -124,6 +128,7 @@ paths:
               schema: { $ref: "#/components/schemas/User" }
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
+        "403": { $ref: "#/components/responses/ForbiddenError" }
         "404": { $ref: "#/components/responses/NotFoundError" }
         "500": { $ref: "#/components/responses/ServerError" }
 
@@ -153,6 +158,7 @@ paths:
               schema: { $ref: "#/components/schemas/PostList" }
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
+        "403": { $ref: "#/components/responses/ForbiddenError" }
         "404": { $ref: "#/components/responses/NotFoundError" }
         "500": { $ref: "#/components/responses/ServerError" }
 
@@ -189,6 +195,8 @@ paths:
               schema: { $ref: "#/components/responses/ForbiddenError" }
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
+        # No 403: user has acccess to own resources
+        # No 404: user exists
         "500": { $ref: "#/components/responses/ServerError" }
   
 
@@ -214,6 +222,7 @@ paths:
             If you were already following the user, this status will not be modified.
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
+        "403": { $ref: "#/components/responses/ForbiddenError" }
         "404": { $ref: "#/components/responses/NotFoundError" }
         "500": { $ref: "#/components/responses/ServerError" }
 
@@ -234,6 +243,7 @@ paths:
             If you already weren't following the user, this status will not be modified.
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
+        # No 403: can always unfollow existing users
         "404": { $ref: "#/components/responses/NotFoundError" }
         "500": { $ref: "#/components/responses/ServerError" }
 
@@ -258,6 +268,7 @@ paths:
             If the user was already banned, this status will not be modified.
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
+        # No 403: can ban users that have banned you.
         "404": { $ref: "#/components/responses/NotFoundError" }
         "500": { $ref: "#/components/responses/ServerError" }
 
@@ -278,6 +289,7 @@ paths:
             If the user wasn't banned, this status will not be modified.
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
+        # No 403: can always unban users.
         "404": { $ref: "#/components/responses/NotFoundError" }
         "500": { $ref: "#/components/responses/ServerError" }
 
@@ -318,6 +330,8 @@ paths:
               schema: { $ref: "#/components/schemas/Error" }
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
+        # No 403: falls under AuthorizationError
+        # No 404: not searching for resource
         "500": { $ref: "#/components/responses/ServerError" }
         
         
@@ -349,6 +363,8 @@ paths:
                 maxLength: 10485760 # 10 MB
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
+        "403": { $ref: "#/components/responses/ForbiddenError" }
+        # No 404: not searching for resource
         "500": { $ref: "#/components/responses/ServerError" }
 
     delete:
@@ -369,6 +385,7 @@ paths:
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
         "403": { $ref: "#/components/responses/ForbiddenError" }
+        # No 404: implemented by design in 204
         "500": { $ref: "#/components/responses/ServerError" }
 
 
@@ -417,12 +434,12 @@ paths:
             this status will not be modified (idempotent).
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
-        "403": { $ref: "#/components/responses/ForbiddenError" }
+        # No 403: can always delete likes from posts
         "404": { $ref: "#/components/responses/NotFoundError" }
         "500": { $ref: "#/components/responses/ServerError" }
 
 
-  /photo/{postID}/comments/:
+  /photos/{postID}/comments/:
     description: endpoint disclosing generic actions on the comments of a photo resource.
     parameters:
       - $ref: "#/components/parameters/PostID"
@@ -442,6 +459,7 @@ paths:
         "200": { $ref: "#/components/responses/CommentListResponse" }
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
+        "403": { $ref: "#/components/responses/ForbiddenError" }
         "404": { $ref: "#/components/responses/NotFoundError" }
         "500": { $ref: "#/components/responses/ServerError" }
 
@@ -474,7 +492,7 @@ paths:
         "500": { $ref: "#/components/responses/ServerError" }
   
 
-  /photo/{postID}/comments/{commentID}:
+  /photos/{postID}/comments/{commentID}:
     description: endpoint disclosing deletion actions on the comments of a photo resource.
     parameters:
       - $ref: "#/components/parameters/PostID"
@@ -494,7 +512,7 @@ paths:
           description: the comment was deleted.
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
-        "403": { $ref: "#/components/responses/ForbiddenError" }
+        # No 403: can always delete own comment.
         "404": { $ref: "#/components/responses/NotFoundError" }
         "500": { $ref: "#/components/responses/ServerError" }
 

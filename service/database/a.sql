@@ -1,0 +1,59 @@
+CREATE TABLE IF NOT EXISTS User (
+	id              INTEGER NOT NULL PRIMARY KEY,
+	username        TEXT NOT NULL UNIQUE
+	name            TEXT NOT NULL,
+	surname         TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Photo
+(
+	id              INTEGER NOT NULL PRIMARY KEY,
+	authorId        INTEGER NOT NULL,
+	photoUrl        TEXT NOT NULL,
+	timeOfCreation  INTEGER NOT NULL,
+
+    FOREIGN KEY authorId REFERENCES User (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Comment
+(
+	id              INTEGER NOT NULL PRIMARY KEY,
+	string          TEXT NOT NULL,
+	timeOfCreation  INTEGER NOT NULL,
+	authorId        INTEGER NOT NULL,
+	photoId         INTEGER NOT NULL,
+    
+    FOREIGN KEY authorId REFERENCES User  (id) ON DELETE CASCADE,
+    FOREIGN KEY photoId  REFERENCES Photo (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Likes
+(
+	userId  INTEGER NOT NULL, 
+	photoId INTEGER NOT NULL, 
+
+	PRIMARY KEY (userId, photoId),
+    FOREIGN KEY userId  REFERENCES User (id)  ON DELETE CASCADE,
+    FOREIGN KEY photoId REFERENCES Photo (id) ON DELETE CASCADE 
+);
+
+CREATE TABLE IF NOT EXISTS Follow
+(
+	followerId INTEGER NOT NULL,
+	followedId INTEGER NOT NULL,
+
+	PRIMARY KEY (followerId, followedId)
+    FOREIGN KEY followerId REFERENCES User (id) ON DELETE CASCADE,
+    FOREIGN KEY followedId REFERENCES User (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Ban
+(
+	bannerId INTEGER NOT NULL,
+	bannedId INTEGER NOT NULL,
+	
+    PRIMARY KEY (bannerId, bannedId),
+    FOREIGN KEY bannerId REFERENCES User (id) ON DELETE CASCADE,
+    FOREIGN KEY bannedId REFERENCES User (id) ON DELETE CASCADE
+
+);

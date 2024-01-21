@@ -36,13 +36,18 @@ import (
 	"fmt"
 )
 
+// §§ Definisci Interfaccia
+
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
 	GetName() (string, error)
 	SetName(name string) error
+	User()
+	InsertLike(postid string) error
 
 	Ping() error
 }
+// §§ Implementa interfaccia in file singoli
 
 type appdbimpl struct {
 	c *sql.DB
@@ -56,10 +61,103 @@ func New(db *sql.DB) (AppDatabase, error) {
 	}
 
 	// Check if table exists. If not, the database is empty, and we need to create the structure
-	var tableName string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='example_table';`).Scan(&tableName)
+	var users string
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='users';`).Scan(&users)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
+		sqlStmt := `CREATE TABLE IF NOT EXISTS users (
+			id              INTEGER NOT NULL PRIMARY KEY,
+			username        TEXT NOT NULL UNIQUE
+			name            TEXT NOT NULL,
+			surname         TEXT NOT NULL
+		);`
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+
+	var photos string
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='photos';`).Scan(&photos)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := `CREATE TABLE IF NOT EXISTS photos (
+			id              INTEGER NOT NULL PRIMARY KEY,
+			authorId        INTEGER NOT NULL,
+			photoUrl        TEXT NOT NULL,
+			timeOfCreation  INTEGER NOT NULL,
+		
+			FOREIGN KEY authorId REFERENCES User (id) ON DELETE CASCADE
+		);`
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+
+	var comments string
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='comments';`).Scan(&comments)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := `CREATE TABLE IF NOT EXISTS comments (
+			id              INTEGER NOT NULL PRIMARY KEY,
+			string          TEXT NOT NULL,
+			timeOfCreation  INTEGER NOT NULL,
+			authorId        INTEGER NOT NULL,
+			photoId         INTEGER NOT NULL,
+			
+			FOREIGN KEY authorId REFERENCES User  (id) ON DELETE CASCADE,
+			FOREIGN KEY photoId  REFERENCES Photo (id) ON DELETE CASCADE
+		);`
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+
+	var likes string
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='likes';`).Scan(&likes)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := `CREATE TABLE IF NOT EXISTS likes (
+			userId  INTEGER NOT NULL, 
+			photoId INTEGER NOT NULL, 
+		
+			PRIMARY KEY (userId, photoId),
+			FOREIGN KEY userId  REFERENCES User (id)  ON DELETE CASCADE,
+			FOREIGN KEY photoId REFERENCES Photo (id) ON DELETE CASCADE 
+		);`
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+
+	var followers string
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='followers';`).Scan(&followers)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := `CREATE TABLE IF NOT EXISTS followers (
+			followerId INTEGER NOT NULL,
+			followedId INTEGER NOT NULL,
+		
+			PRIMARY KEY (followerId, followedId)
+			FOREIGN KEY followerId REFERENCES User (id) ON DELETE CASCADE,
+			FOREIGN KEY followedId REFERENCES User (id) ON DELETE CASCADE
+		);`
+		_, err = db.Exec(sqlStmt)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+
+	var bans string
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='ban';`).Scan(&ban)
+	if errors.Is(err, sql.ErrNoRows) {
+		sqlStmt := `CREATE TABLE IF NOT EXISTS bans (
+			bannerId INTEGER NOT NULL,
+			bannedId INTEGER NOT NULL,
+			
+			PRIMARY KEY (bannerId, bannedId),
+			FOREIGN KEY bannerId REFERENCES User (id) ON DELETE CASCADE,
+			FOREIGN KEY bannedId REFERENCES User (id) ON DELETE CASCADE
+		
+		);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
