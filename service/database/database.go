@@ -40,12 +40,12 @@ import (
 
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
-	GetName() (string, error)
-	SetName(name string) error
-	User()
-	InsertLike(postid string) error
+	// GetName() (string, error)
+	// SetName(name string) error
+	// User()
+	// InsertLike(postid string) error
 
-	Ping() error
+	// Ping() error
 }
 // §§ Implementa interfaccia in file singoli
 
@@ -65,8 +65,8 @@ func New(db *sql.DB) (AppDatabase, error) {
 	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='users';`).Scan(&users)
 	if errors.Is(err, sql.ErrNoRows) {
 		sqlStmt := `CREATE TABLE IF NOT EXISTS users (
-			id              INTEGER NOT NULL PRIMARY KEY,
-			username        TEXT NOT NULL UNIQUE
+			id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+			username        TEXT NOT NULL UNIQUE,
 			name            TEXT NOT NULL,
 			surname         TEXT NOT NULL
 		);`
@@ -77,15 +77,15 @@ func New(db *sql.DB) (AppDatabase, error) {
 	}
 
 	var photos string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='photos';`).Scan(&photos)
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='photos';`).Scan(&photos)
 	if errors.Is(err, sql.ErrNoRows) {
 		sqlStmt := `CREATE TABLE IF NOT EXISTS photos (
-			id              INTEGER NOT NULL PRIMARY KEY,
+			id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 			authorId        INTEGER NOT NULL,
 			photoUrl        TEXT NOT NULL,
 			timeOfCreation  INTEGER NOT NULL,
 		
-			FOREIGN KEY authorId REFERENCES User (id) ON DELETE CASCADE
+			FOREIGN KEY (authorId) REFERENCES User (id) ON DELETE CASCADE
 		);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
@@ -94,17 +94,17 @@ func New(db *sql.DB) (AppDatabase, error) {
 	}
 
 	var comments string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='comments';`).Scan(&comments)
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='comments';`).Scan(&comments)
 	if errors.Is(err, sql.ErrNoRows) {
 		sqlStmt := `CREATE TABLE IF NOT EXISTS comments (
-			id              INTEGER NOT NULL PRIMARY KEY,
+			id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 			string          TEXT NOT NULL,
 			timeOfCreation  INTEGER NOT NULL,
 			authorId        INTEGER NOT NULL,
 			photoId         INTEGER NOT NULL,
 			
-			FOREIGN KEY authorId REFERENCES User  (id) ON DELETE CASCADE,
-			FOREIGN KEY photoId  REFERENCES Photo (id) ON DELETE CASCADE
+			FOREIGN KEY (authorId) REFERENCES User  (id) ON DELETE CASCADE,
+			FOREIGN KEY (photoId)  REFERENCES Photo (id) ON DELETE CASCADE
 		);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
@@ -113,15 +113,15 @@ func New(db *sql.DB) (AppDatabase, error) {
 	}
 
 	var likes string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='likes';`).Scan(&likes)
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='likes';`).Scan(&likes)
 	if errors.Is(err, sql.ErrNoRows) {
 		sqlStmt := `CREATE TABLE IF NOT EXISTS likes (
 			userId  INTEGER NOT NULL, 
 			photoId INTEGER NOT NULL, 
 		
 			PRIMARY KEY (userId, photoId),
-			FOREIGN KEY userId  REFERENCES User (id)  ON DELETE CASCADE,
-			FOREIGN KEY photoId REFERENCES Photo (id) ON DELETE CASCADE 
+			FOREIGN KEY (userId)  REFERENCES User (id)  ON DELETE CASCADE,
+			FOREIGN KEY (photoId) REFERENCES Photo (id) ON DELETE CASCADE 
 		);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
@@ -129,16 +129,16 @@ func New(db *sql.DB) (AppDatabase, error) {
 		}
 	}
 
-	var followers string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='followers';`).Scan(&followers)
+	var follows string
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='follows';`).Scan(&follows)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE IF NOT EXISTS followers (
+		sqlStmt := `CREATE TABLE IF NOT EXISTS follows (
 			followerId INTEGER NOT NULL,
 			followedId INTEGER NOT NULL,
 		
 			PRIMARY KEY (followerId, followedId)
-			FOREIGN KEY followerId REFERENCES User (id) ON DELETE CASCADE,
-			FOREIGN KEY followedId REFERENCES User (id) ON DELETE CASCADE
+			FOREIGN KEY (followerId) REFERENCES User (id) ON DELETE CASCADE,
+			FOREIGN KEY (followedId) REFERENCES User (id) ON DELETE CASCADE
 		);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
@@ -147,15 +147,15 @@ func New(db *sql.DB) (AppDatabase, error) {
 	}
 
 	var bans string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='ban';`).Scan(&ban)
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='bans';`).Scan(&bans)
 	if errors.Is(err, sql.ErrNoRows) {
 		sqlStmt := `CREATE TABLE IF NOT EXISTS bans (
 			bannerId INTEGER NOT NULL,
 			bannedId INTEGER NOT NULL,
 			
 			PRIMARY KEY (bannerId, bannedId),
-			FOREIGN KEY bannerId REFERENCES User (id) ON DELETE CASCADE,
-			FOREIGN KEY bannedId REFERENCES User (id) ON DELETE CASCADE
+			FOREIGN KEY (bannerId) REFERENCES User (id) ON DELETE CASCADE,
+			FOREIGN KEY (bannedId) REFERENCES User (id) ON DELETE CASCADE
 		
 		);`
 		_, err = db.Exec(sqlStmt)

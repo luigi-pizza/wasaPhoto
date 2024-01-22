@@ -714,11 +714,11 @@ components:
       description: |
         The Unique Resource Id of an element, be it an user, photo or comment.
     
-      type: string
-      example: "0123456789abcdef0123456789abcdef"
+      type: integer
+      example: 4902
       readOnly: true
-      minLength: 32
-      maxLength: 32
+      maximum: 18446744073709551615 # 2^64-1 
+      minimum: 0
       pattern: "^[0-9a-f]{32}$"
 
 
@@ -734,30 +734,7 @@ components:
       properties:
         id: { $ref: "#/components/schemas/ResourceId" }
         username: { $ref: "#/components/schemas/Username" }
-        name:
-          description: the name of the user.
-          type: string
-          example: Maria
-          pattern: "^.*?$"
-          minLength: 2
-          maxLength: 64
-        surname:
-          description: the surname of the user.
-          type: string
-          example: Smith
-          pattern: "^.*?$"
-          minLength: 2
-          maxLength: 64
-        Bio:
-          description: the biography of the user.
-          type: string
-          example: |
-            Hi, I'm Maria Smith.
-            I study at Sapienza.
-          minLength: 0
-          maxLength: 1000
-          default: ""
-        numeberOfFollowers:
+        numberOfFollowers:
           description: the number of users following the account.
           type: integer
           readOnly: true
