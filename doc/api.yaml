@@ -64,12 +64,12 @@ paths:
           description: User already exists, returns user identifier.
           content:
             application/json:
-              schema: { $ref: "#/components/responses/LoginResponse" }
+              schema: { $ref: "#/components/schemas/ResourceId" }
         "201":
           description: successful registration of a new user, returns user identifier.
           content:
             application/json:
-              schema: { $ref: "#/components/responses/LoginResponse" }
+              schema: { $ref: "#/components/schemas/ResourceId" }
         "400": { $ref: "#/components/responses/BadRequestError" }
         # No 403: User not logged in
         # No 404: User not logged in
@@ -80,7 +80,7 @@ paths:
     description: endpoint disclosing the users' collection.
     get:
       tags: ["user"]
-      summary: Search users' collection.
+      summary: Search users' collection
       description: |
         Search users through a complete or partial match of their usernames.
 
@@ -110,7 +110,7 @@ paths:
       - $ref: "#/components/parameters/UserID"
     get:
       tags: ["user"]
-      summary: get a user's profile given the user Identifier.
+      summary: get a user's profile given the user Identifier
       description: |
         get a user's profile details given their user identifier.
         The remaining content of the profile, including the photos,
@@ -139,7 +139,7 @@ paths:
       - $ref: "#/components/parameters/UserID"
     get:
       tags: ["files"]
-      summary: get an user's photos given the user Identifier.
+      summary: get an user's photos given the user Identifier
       description: |
         get an user's photos given their user identifier, using paginated
         requests.
@@ -151,11 +151,9 @@ paths:
       parameters:
         - $ref: "#/components/parameters/PaginationCursorParameter"
       responses:
-        "200":
-          description: user was found and photos returned.
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/PostList" }
+        "200":  { $ref: "#/components/responses/PostListResponse" }
+          # User was found and his/her photos returned
+
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
         "403": { $ref: "#/components/responses/ForbiddenError" }
@@ -167,7 +165,7 @@ paths:
     description: endpoint disclosing actions on the authenticated user's resource.
     put:
       tags: ["user"]
-      summary: Update current user details.
+      summary: Update current user details
       description: |
         Update the authenticated user details, such as name, surname, bio, username.
 
@@ -188,25 +186,21 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/User" }
-        "403":
-          description: the request tried to modify the username, but the inserted username is already in use.
-          content:
-            application/json:
-              schema: { $ref: "#/components/responses/ForbiddenError" }
+        "403": { $ref: "#/components/responses/ForbiddenError" }
+        # No 403: user has access to own resources but can't insert username that is already taken
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
-        # No 403: user has acccess to own resources
         # No 404: user exists
         "500": { $ref: "#/components/responses/ServerError" }
   
 
-  /users/self/followedUsers/{userID}:
+  /users/self/followed_users/{userID}:
     description: endpoint disclosing actions on the authenticated user's followed users resources.
     parameters:
       - $ref: "#/components/parameters/UserID"
     put:
       tags: ["follow"]
-      summary: Follow an user.
+      summary: Follow an user
       description: |
         Add the user identified by "UserID" to your followed_Users collection.
 
@@ -228,7 +222,7 @@ paths:
 
     delete:
       tags: ["follow"]
-      summary: Unfollow a user.
+      summary: Unfollow a user
       description: |
         Remove the user identified by "UserID" from your followed_Users collection.
 
@@ -247,13 +241,13 @@ paths:
         "404": { $ref: "#/components/responses/NotFoundError" }
         "500": { $ref: "#/components/responses/ServerError" }
 
-  /users/self/bannedUsers/{userID}:
+  /users/self/banned_users/{userID}:
     description: endpoint disclosing actions on the authenticated user's banned users resources.
     parameters:
       - $ref: "#/components/parameters/UserID"
     put:
       tags: ["ban"]
-      summary: Ban an user.
+      summary: Ban an user
       description: |
         Add the user identified by "UserID" to your Banned_Users collection.
 
@@ -274,7 +268,7 @@ paths:
 
     delete:
       tags: ["ban"]
-      summary: Pardon an user.
+      summary: Pardon an user
       description: |
         Remove the user identified by "UserID" from your banned_Users collection.
 
@@ -308,15 +302,9 @@ paths:
       operationId: uploadPhoto
       requestBody:
         content:
-          image/*:
+          multipart/form-data:
             schema:
-              description: Photo to upload, as binary file.
-              type: string
-              format: binary
-              minLength: 16384    # 16 kB
-              maxLength: 10485760 # 10 MB
-              # If I have time I'd like to implement other stuff
-              # https://swagger.io/docs/specification/describing-request-body/file-upload/
+              $ref: "#/components/schemas/Photo"
       responses:
         "201":
           description: successful creation of the post, returns the photo resource.
@@ -341,7 +329,7 @@ paths:
       - $ref: "#/components/parameters/PostID"
     get:
       tags: ["files"]
-      summary: Return the binary file composing the photo.
+      summary: Return the binary file composing the photo
       description: |
         Get the binary file of photo contents.
 
@@ -369,7 +357,7 @@ paths:
 
     delete:
       tags: ["files"]
-      summary: delete a photo.
+      summary: delete a photo
       description: |
         Delete a photo from your personal account.
 
@@ -445,7 +433,7 @@ paths:
       - $ref: "#/components/parameters/PostID"
     get:
       tags: ['comments']
-      summary: get the comments of a photo.
+      summary: get the comments of a photo
       description: |
         Receive the comments under a post, in reverse chronological order,
         using pagination.
@@ -484,6 +472,9 @@ paths:
           description: |
             the photo was found, the sender had permission to comment and
             the comment was created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Comment" }
           
         "400": { $ref: "#/components/responses/BadRequestError" }
         "401": { $ref: "#/components/responses/AuthorizationError" }
@@ -499,7 +490,7 @@ paths:
       - $ref: "#/components/parameters/CommentID"
     delete:
       tags: ['comments']
-      summary: delete a comment of a photo.
+      summary: delete a comment of a photo
       description: |
         Delete a comment under a photo from your personal account.
 
@@ -517,12 +508,12 @@ paths:
         "500": { $ref: "#/components/responses/ServerError" }
 
 
-  /myStream:
+  /my_stream:
     description: endpoint allowing an authenticated user to fetch its photo stream.
     get:
       tags: ["user"]
       operationId: getMyStream
-      summary: Get the authenticated user post stream.
+      summary: Get the authenticated user post stream
       description: |
         Get the authenticated user post stream. It will contain the posts
         of the profiles you are following, in reverse chronological order.
@@ -642,19 +633,19 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
 
-    LoginResponse:
-      description: |
-        returns auth details. Through this data, messages sent by users can be proven to be genuine
-        at the server, therefore authenticating the user.
+    # LoginResponse:
+    #   description: |
+    #     returns auth details. Through this data, messages sent by users can be proven to be genuine
+    #     at the server, therefore authenticating the user.
 
-        At the moment, as per project specification, authentication is achieved through a 
-        simplified login. The auth details returned by the server will consist in a Bearer Authorization 
-        Token to insert in the Authorization header of the requests.
+    #     At the moment, as per project specification, authentication is achieved through a 
+    #     simplified login. The auth details returned by the server will consist in a Bearer Authorization 
+    #     Token to insert in the Authorization header of the requests.
 
-        The Bearer Authorization Token consists of the user's UserId.
-      content: 
-        application/json:
-          schema: { $ref: "#/components/schemas/ResourceId" }
+    #     The Bearer Authorization Token consists of the user's UserId.
+    #   content: 
+    #     application/json:
+    #       schema: { $ref: "#/components/schemas/ResourceId" }
 
 
     UserListResponse:
@@ -664,7 +655,13 @@ components:
 
       content: 
         application/json:
-          schema: { $ref: "#/components/schemas/UserList" }
+          schema: 
+            description: |
+              the list of users to be displayed at the client.
+              This array may or may not contain elements
+            type: object
+            properties:
+              UserList: { $ref: "#/components/schemas/UserList" }
     
     PostListResponse:
       description: |
@@ -673,7 +670,13 @@ components:
 
       content: 
         application/json:
-          schema: { $ref: "#/components/schemas/PostList" }
+          schema: 
+            description: |
+              the list of posts to be displayed at the client.
+              This array may or may not contain elements
+            type: object
+            properties:
+              PostList: { $ref: "#/components/schemas/PostList" }
 
     CommentListResponse:
       description: |
@@ -682,7 +685,13 @@ components:
 
       content: 
         application/json:
-          schema: { $ref: "#/components/schemas/CommentList" }
+          schema: 
+            description: |
+              the list of comments to be displayed at the client.
+              This array may or may not contain elements
+            type: object
+            properties:
+              CommentList: { $ref: "#/components/schemas/CommentList" }
 
 
   schemas:
@@ -698,7 +707,7 @@ components:
         example: dead.b33f_03
         pattern: "([A-Za-z0-9_](?:(?:[A-Za-z0-9_]|(?:\\.(?!\\.))){1,28}(?:[A-Za-z0-9_]))?)"
         minLength: 3
-        maxItems: 30
+        maxLength: 30
         description: |
           User's personal and unique username, used during login. It has the follwing properties:
           - Matches with one . in them @disco.dude but not two .. @disco..dude
@@ -719,7 +728,6 @@ components:
       readOnly: true
       maximum: 18446744073709551615 # 2^64-1 
       minimum: 0
-      pattern: "^[0-9a-f]{32}$"
 
 
     User:
@@ -771,6 +779,29 @@ components:
       minItems: 0
       maxItems: 24
 
+    Photo:
+      description: Photo to upload, as binary file
+      
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+          description: The photo file.
+          minLength: 16384    # 16 kB
+          maxLength: 10485760 # 10 MB
+          pattern: ".*"
+        additionalData:
+          type: object
+          description: metadata for photo handling
+          properties:
+            Caption:
+              description: Photo Caption written by the user.
+              type: string
+              example: O sole mio!
+              pattern: ".*"
+              minLength: 0
+              maxLength: 400
 
     Post:
       description: |
@@ -841,10 +872,11 @@ components:
 
 
     PaginationCursor:
-      type: string
-      description: pagination cursor of the rquest. If null, starting content is returned 
-      nullable: true
-
+      description: pagination cursor of the rquest. If ResourceId=0, starting content is returned 
+      
+      type: object
+      properties:
+        lastElement: { $ref: "#/components/schemas/ResourceId" }
 
   securitySchemes:
     UserIdAuth:
