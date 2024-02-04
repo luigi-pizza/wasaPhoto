@@ -167,18 +167,18 @@ paths:
       tags: ["user"]
       summary: Update current user details
       description: |
-        Update the authenticated user details, such as name, surname, bio, username.
+        Update the authenticated username.
 
         An authenticated session is requested to perform this action, 
         in order to select the correct resource.
       
-      operationId: setMyDetails
+      operationId: setMyUserName
       requestBody:
         description: Fields to update in the current user's resource
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/User" }
+            schema: { $ref: "#/components/schemas/Username" }
 
       responses:
         "200": 
