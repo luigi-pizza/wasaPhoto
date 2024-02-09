@@ -36,6 +36,67 @@ import (
 	"fmt"
 )
 
+const (
+	usersTableCreationStatement = ` 
+	CREATE TABLE IF NOT EXISTS users (
+		id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		username        TEXT NOT NULL UNIQUE
+	);`
+	
+	photosTableCreationStatement = `
+	CREATE TABLE IF NOT EXISTS photos (
+		id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		authorId        INTEGER NOT NULL,
+		caption			TEXT,
+		photoUrl        TEXT NOT NULL,
+		timeOfCreation  INTEGER NOT NULL,
+	
+		FOREIGN KEY authorId REFERENCESid User (id) ON DELETE CASCADE
+	);`
+	
+	commentsTableCreationStatement = `
+	CREATE TABLE IF NOT EXISTS comments (
+		id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+		authorId        INTEGER NOT NULL,
+		photoId         INTEGER NOT NULL,
+		commentText     TEXT NOT NULL,
+		timeOfCreation  INTEGER NOT NULL,
+		
+		FOREIGN KEY authorId REFERENCES User  (id) ON DELETE CASCADE,
+		FOREIGN KEY photoId  REFERENCES Photo (id) ON DELETE CASCADE
+	);`
+	
+	likesTableCreationStatement = `
+	CREATE TABLE IF NOT EXISTS likes (
+		userId  INTEGER NOT NULL, 
+		photoId INTEGER NOT NULL, 
+	
+		PRIMARY KEY (userId, photoId),
+		FOREIGN KEY userId  REFERENCES User (id)  ON DELETE CASCADE,
+		FOREIGN KEY photoId REFERENCES Photo (id) ON DELETE CASCADE 
+	);`
+	
+	followsTableCreationStatement = `
+	CREATE TABLE IF NOT EXISTS follows (
+		followerId INTEGER NOT NULL,
+		followedId INTEGER NOT NULL,
+	
+		PRIMARY KEY (followerId, followedId)
+		FOREIGN KEY followerId REFERENCES User (id) ON DELETE CASCADE,
+		FOREIGN KEY followedId REFERENCES User (id) ON DELETE CASCADE
+	);`
+	
+	bansTableCreationStatement = `
+	CREATE TABLE IF NOT EXISTS bans (
+		bannerId INTEGER NOT NULL,
+		bannedId INTEGER NOT NULL,
+		
+		PRIMARY KEY (bannerId, bannedId),
+		FOREIGN KEY bannerId REFERENCES User (id) ON DELETE CASCADE,
+		FOREIGN KEY bannedId REFERENCES User (id) ON DELETE CASCADE
+	);`
+)
+
 // §§ Definisci Interfaccia
 
 // AppDatabase is the high level interface for the DB
@@ -56,113 +117,32 @@ type appdbimpl struct {
 // New returns a new instance of AppDatabase based on the SQLite connection `db`.
 // `db` is required - an error will be returned if `db` is `nil`.
 func New(db *sql.DB) (AppDatabase, error) {
+
+	// Check Existence of passed Database
 	if db == nil {
 		return nil, errors.New("database is required when building a AppDatabase")
 	}
 
+	TableMapping := map[string]string{
+		"bans": 	bansTableCreationStatement,
+		"users": 	usersTableCreationStatement,
+		"likes": 	likesTableCreationStatement,
+		"photos": 	photosTableCreationStatement,
+		"follows": 	followsTableCreationStatement,
+		"comments": commentsTableCreationStatement,
+	}
+
 	// Check if table exists. If not, the database is empty, and we need to create the structure
-	var users string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='users';`).Scan(&users)
-	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE IF NOT EXISTS users (
-			id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-			username        TEXT NOT NULL UNIQUE,
-			name            TEXT NOT NULL,
-			surname         TEXT NOT NULL
-		);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating database structure: %w", err)
-		}
-	}
-
-	var photos string
-	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='photos';`).Scan(&photos)
-	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE IF NOT EXISTS photos (
-			id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-			authorId        INTEGER NOT NULL,
-			photoUrl        TEXT NOT NULL,
-			timeOfCreation  INTEGER NOT NULL,
+	for tableName, sqlStmt := range TableMapping {
+		err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name= ? ;`, tableName).Scan(&tableName)
 		
-			FOREIGN KEY (authorId) REFERENCES User (id) ON DELETE CASCADE
-		);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating database structure: %w", err)
-		}
-	}
+		if errors.Is(err, sql.ErrNoRows) {
+			_, err = db.Exec(sqlStmt)
 
-	var comments string
-	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='comments';`).Scan(&comments)
-	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE IF NOT EXISTS comments (
-			id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-			string          TEXT NOT NULL,
-			timeOfCreation  INTEGER NOT NULL,
-			authorId        INTEGER NOT NULL,
-			photoId         INTEGER NOT NULL,
-			
-			FOREIGN KEY (authorId) REFERENCES User  (id) ON DELETE CASCADE,
-			FOREIGN KEY (photoId)  REFERENCES Photo (id) ON DELETE CASCADE
-		);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating database structure: %w", err)
+			if (err != nil) {return nil, fmt.Errorf("error creating database structure.\n%s -> %w", tableName, err)}
 		}
 	}
-
-	var likes string
-	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='likes';`).Scan(&likes)
-	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE IF NOT EXISTS likes (
-			userId  INTEGER NOT NULL, 
-			photoId INTEGER NOT NULL, 
-		
-			PRIMARY KEY (userId, photoId),
-			FOREIGN KEY (userId)  REFERENCES User (id)  ON DELETE CASCADE,
-			FOREIGN KEY (photoId) REFERENCES Photo (id) ON DELETE CASCADE 
-		);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating database structure: %w", err)
-		}
-	}
-
-	var follows string
-	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='follows';`).Scan(&follows)
-	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE IF NOT EXISTS follows (
-			followerId INTEGER NOT NULL,
-			followedId INTEGER NOT NULL,
-		
-			PRIMARY KEY (followerId, followedId)
-			FOREIGN KEY (followerId) REFERENCES User (id) ON DELETE CASCADE,
-			FOREIGN KEY (followedId) REFERENCES User (id) ON DELETE CASCADE
-		);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating database structure: %w", err)
-		}
-	}
-
-	var bans string
-	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='bans';`).Scan(&bans)
-	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE IF NOT EXISTS bans (
-			bannerId INTEGER NOT NULL,
-			bannedId INTEGER NOT NULL,
-			
-			PRIMARY KEY (bannerId, bannedId),
-			FOREIGN KEY (bannerId) REFERENCES User (id) ON DELETE CASCADE,
-			FOREIGN KEY (bannedId) REFERENCES User (id) ON DELETE CASCADE
-		
-		);`
-		_, err = db.Exec(sqlStmt)
-		if err != nil {
-			return nil, fmt.Errorf("error creating database structure: %w", err)
-		}
-	}
+	
 
 	return &appdbimpl{
 		c: db,

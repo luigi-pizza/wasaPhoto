@@ -166,9 +166,9 @@ paths:
     description: endpoint disclosing actions on the authenticated user's resource.
     put:
       tags: ["user"]
-      summary: Update current user details
+      summary: Update current username
       description: |
-        Update the authenticated username.
+        Update the username.
 
         An authenticated session is requested to perform this action, 
         in order to select the correct resource.
@@ -379,11 +379,10 @@ paths:
         "500": { $ref: "#/components/responses/ServerError" }
 
 
-  /photos/{postID}/likes/{userID}:
+  /photos/{postID}/likes/self:
     description: endpoint disclosing actions on the likes of a photo resource.
     parameters:
       - $ref: "#/components/parameters/PostID"
-      - $ref: "#/components/parameters/UserID"
     put:
       tags: ['likes']
       summary: like a photo
@@ -624,12 +623,9 @@ components:
     NotFoundError:
       description: |
         the resource was not found: 
-        - if searching for a user: the UserID doesn't exist or the User exists 
-          and has banned the searcher. 
-        - if searching for a photo: the PostID doesn't exist or the post exists 
-          and the user who has made the post has banned the searcher.
-        - if searching for a comment: the PostID or the commentID don't exist, or they
-          exist and the user who has made the post or the comment has banned the searcher. 
+        - if searching for a user: the UserID doesn't exist.
+        - if searching for a photo: the PostID doesn't exist.
+        - if searching for a comment: the PostID or the commentID don't exist. 
         An error is returned.
       content:
         application/json:
@@ -737,7 +733,7 @@ components:
         Resource representing a user. It contains all relevant information
         about the user, including:
         - his User-Id, enabling the user to get to that user's profile.
-        - Information about his profile: name, surname, bio, numberOfPosts, numeberOfFollowers, accountsFollowed
+        - Information about his profile: numberOfPosts, numeberOfFollowers, accountsFollowed
         - Effective information for the user: isBanned, isFollowed.
       
       type: object
@@ -772,7 +768,20 @@ components:
           type: boolean
           readOnly: true
           example: true
+  
+    ReducedUser:
+      description: |
+        Resource representing a user. It contains all relevant information
+        about the user, including:
+        - his User-Id, enabling the user to get to that user's profile.
+        - Information about his profile: numberOfPosts, numeberOfFollowers, accountsFollowed
+        - Effective information for the user: isBanned, isFollowed.
       
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/ResourceId" }
+        username: { $ref: "#/components/schemas/Username" }
+
     UserList:
       description: |
         an array of Users, to be displayed in search queries.
