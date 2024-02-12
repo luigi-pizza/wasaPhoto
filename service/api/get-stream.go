@@ -27,6 +27,7 @@ func (rt *_router) get_stream(w http.ResponseWriter, r *http.Request, ps httprou
 
 	// Authorised -> get result
 	photoList, err := rt.db.Select_stream(ctx.Uid, requestedPage)
+	photoList.PageNumber = requestedPage
 
 	// check for DB errors
 	if err != nil {

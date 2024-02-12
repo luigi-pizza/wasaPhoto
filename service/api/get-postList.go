@@ -58,6 +58,7 @@ func (rt *_router) get_postList(w http.ResponseWriter, r *http.Request, ps httpr
 
 	// Authorised -> get result
 	photoList, err := rt.db.Select_postList(ctx.Uid, requestedUser, requestedPage)
+	photoList.PageNumber = requestedPage
 
 	// check for DB errors
 	if err != nil {
