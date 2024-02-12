@@ -34,80 +34,52 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-)
 
-const (
-	usersTableCreationStatement = ` 
-	CREATE TABLE IF NOT EXISTS users (
-		id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-		username        TEXT NOT NULL UNIQUE
-	);`
-	
-	photosTableCreationStatement = `
-	CREATE TABLE IF NOT EXISTS photos (
-		id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-		authorId        INTEGER NOT NULL,
-		caption			TEXT,
-		photoUrl        TEXT NOT NULL,
-		timeOfCreation  INTEGER NOT NULL,
-	
-		FOREIGN KEY authorId REFERENCESid User (id) ON DELETE CASCADE
-	);`
-	
-	commentsTableCreationStatement = `
-	CREATE TABLE IF NOT EXISTS comments (
-		id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-		authorId        INTEGER NOT NULL,
-		photoId         INTEGER NOT NULL,
-		commentText     TEXT NOT NULL,
-		timeOfCreation  INTEGER NOT NULL,
-		
-		FOREIGN KEY authorId REFERENCES User  (id) ON DELETE CASCADE,
-		FOREIGN KEY photoId  REFERENCES Photo (id) ON DELETE CASCADE
-	);`
-	
-	likesTableCreationStatement = `
-	CREATE TABLE IF NOT EXISTS likes (
-		userId  INTEGER NOT NULL, 
-		photoId INTEGER NOT NULL, 
-	
-		PRIMARY KEY (userId, photoId),
-		FOREIGN KEY userId  REFERENCES User (id)  ON DELETE CASCADE,
-		FOREIGN KEY photoId REFERENCES Photo (id) ON DELETE CASCADE 
-	);`
-	
-	followsTableCreationStatement = `
-	CREATE TABLE IF NOT EXISTS follows (
-		followerId INTEGER NOT NULL,
-		followedId INTEGER NOT NULL,
-	
-		PRIMARY KEY (followerId, followedId)
-		FOREIGN KEY followerId REFERENCES User (id) ON DELETE CASCADE,
-		FOREIGN KEY followedId REFERENCES User (id) ON DELETE CASCADE
-	);`
-	
-	bansTableCreationStatement = `
-	CREATE TABLE IF NOT EXISTS bans (
-		bannerId INTEGER NOT NULL,
-		bannedId INTEGER NOT NULL,
-		
-		PRIMARY KEY (bannerId, bannedId),
-		FOREIGN KEY bannerId REFERENCES User (id) ON DELETE CASCADE,
-		FOREIGN KEY bannedId REFERENCES User (id) ON DELETE CASCADE
-	);`
+	"github.com/luigi-pizza/wasaPhoto/service/components/schema"
 )
 
 // §§ Definisci Interfaccia
 
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
-	// GetName() (string, error)
-	// SetName(name string) error
-	// User()
-	// InsertLike(postid string) error
+	// Assert
+	IsBanned(bannerId uint64, bannedId uint64) (bool, error)
+	IsCommentId(comment_id uint64) (bool, uint64, uint64, error)
+	IsFollowed(followerId uint64, followedId uint64) (bool, error)
+	IsLiked(user_id uint64, photo_id uint64) (bool, error)
+	IsPhotoId(photo_id uint64) (bool, uint64, error)
+	IsUserId(user_id uint64) (bool, error)
 
-	// Ping() error
+	// Delete
+	Delete_ban(pardonerId uint64, pardonedId uint64) error
+	Delete_comment(commentId uint64, photoId uint64) error
+	Delete_follow(followerId uint64, followedId uint64) error
+	Delete_like(user_id uint64, photo_id uint64) error
+	Delete_photo(id uint64) error
+	// NO delete_user
+
+	// Insert
+	Insert_ban(bannerId uint64, bannedId uint64) error
+	Insert_comment(photoId uint64, authorId uint64, text string, timeOfCreation int64) (uint64, error)
+	Insert_follow(followerId uint64, followedId uint64) error
+	Insert_like(user_id uint64, photo_id uint64) error
+	Insert_photo(authorId uint64, caption string, creation int64) (uint64, error)
+	Insert_user(username string) (uint64, bool, error)
+
+	// select
+	Select_commentList(user_id uint64, post_id uint64, page_numb uint64) (schema.CommentList, error)
+	Select_completeUser(requestingUser uint64, requestedUser uint64) (schema.CompleteUser, error)
+	Select_postList(requestingUser uint64, requestedUser uint64, page_numb uint64) (schema.PostList, error)
+	Select_reducedUser(userId uint64) (schema.ReducedUser, error)
+	Select_stream(requestingUser uint64, page_numb uint64) (schema.PostList, error)
+	Select_userList(requestingUser uint64, prompt string) (schema.UserList, error)
+
+	// update
+	Update_username(userId uint64, newUsername string) error
+
+	Ping() error
 }
+
 // §§ Implementa interfaccia in file singoli
 
 type appdbimpl struct {
@@ -124,25 +96,26 @@ func New(db *sql.DB) (AppDatabase, error) {
 	}
 
 	TableMapping := map[string]string{
-		"bans": 	bansTableCreationStatement,
-		"users": 	usersTableCreationStatement,
-		"likes": 	likesTableCreationStatement,
-		"photos": 	photosTableCreationStatement,
-		"follows": 	followsTableCreationStatement,
+		"bans":     bansTableCreationStatement,
+		"users":    usersTableCreationStatement,
+		"likes":    likesTableCreationStatement,
+		"photos":   photosTableCreationStatement,
+		"follows":  followsTableCreationStatement,
 		"comments": commentsTableCreationStatement,
 	}
 
 	// Check if table exists. If not, the database is empty, and we need to create the structure
 	for tableName, sqlStmt := range TableMapping {
 		err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name= ? ;`, tableName).Scan(&tableName)
-		
+
 		if errors.Is(err, sql.ErrNoRows) {
 			_, err = db.Exec(sqlStmt)
 
-			if (err != nil) {return nil, fmt.Errorf("error creating database structure.\n%s -> %w", tableName, err)}
+			if err != nil {
+				return nil, fmt.Errorf("error creating database structure.\n%s -> %w", tableName, err)
+			}
 		}
 	}
-	
 
 	return &appdbimpl{
 		c: db,
