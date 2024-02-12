@@ -31,10 +31,10 @@ func (rt *_router) Handler() http.Handler {
 
 	rt.router.GET("/users/", rt.wrap(rt.get_userList, true))
 
-	rt.router.GET("/photos/:postId/comments/:page", rt.wrap(rt.get_commentList, true))
+	rt.router.GET("/photos/:postId/comments/", rt.wrap(rt.get_commentList, true))
 
-	rt.router.GET("/users/:userId/photos/:page", rt.wrap(rt.get_postList, true))
-	rt.router.GET("/stream/:page", rt.wrap(rt.get_stream, true))
+	rt.router.GET("/users/:userId/photos/", rt.wrap(rt.get_postList, true))
+	rt.router.GET("/stream/", rt.wrap(rt.get_stream, true))
 
 	rt.router.GET("/photos/:postId", rt.wrap(rt.get_photo, true))
 

@@ -12,11 +12,16 @@ import (
 func (rt *_router) get_stream(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// check params
-	requestedPage, err := strconv.ParseUint(ps.ByName("page"), 10, 32)
-	if err != nil {
-		ctx.Logger.Error("get-stream: unable to parse parameter - 'page'")
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	requestedPageString := r.URL.Query().Get("page")
+	var requestedPage uint64 = 0
+	var err error
+	if requestedPageString != "" {
+		requestedPage, err = strconv.ParseUint(requestedPageString, 10, 32)
+		if err != nil {
+			ctx.Logger.Error("get-stream: unable to parse parameter - 'page'")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 	}
 
 
