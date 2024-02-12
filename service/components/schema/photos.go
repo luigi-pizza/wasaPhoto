@@ -11,6 +11,6 @@ type Post struct {
 }
 
 type PostList struct {
-	PageNumber 	 uint64
-	Posts        []Post
+	PageNumber uint64 	`json:"page"`
+	Posts      []Post 	`json:"posts"`
 }
