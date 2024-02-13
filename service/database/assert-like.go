@@ -10,9 +10,11 @@ func (db *appdbimpl) IsLiked(user_id uint64, photo_id uint64) (bool, error) {
 
 	var isliked bool
 	err := db.c.QueryRow(
-		`SELECT TRUE FROM likes WHERE photoId = ? AND userId = ?`, 
+		`SELECT TRUE FROM likes WHERE photoId = ? AND userId = ?`,
 		photo_id, user_id).Scan(&isliked)
 
-	if errors.Is(err, sql.ErrNoRows) {return false, nil}
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
 	return isliked, err
 }

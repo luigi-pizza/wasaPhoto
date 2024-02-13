@@ -110,7 +110,6 @@ func run() error {
 		}
 	} else if err != nil {
 		return err
-	} else { /* Directory Exists*/
 	}
 
 	// Start (main) API server

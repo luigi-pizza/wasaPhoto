@@ -9,6 +9,6 @@ type Comment struct {
 }
 
 type CommentList struct {
-	PageNumber		 uint64		`json:"page"`
-	Comments         []Comment	`json:"comments"`
+	PageNumber uint64    `json:"page"`
+	Comments   []Comment `json:"comments"`
 }

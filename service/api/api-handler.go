@@ -15,7 +15,7 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.POST("/login", rt.wrap(rt.post_login, false))
 
 	rt.router.PUT("/settings/username", rt.wrap(rt.put_username, true))
-	
+
 	rt.router.PUT("/banned_users/:userId", rt.wrap(rt.put_ban, true))
 	rt.router.PUT("/followed_users/:userId", rt.wrap(rt.put_follow, true))
 	rt.router.PUT("/photos/:postId/likes/self", rt.wrap(rt.put_like, true))

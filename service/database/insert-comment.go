@@ -12,10 +12,14 @@ func (db *appdbimpl) Insert_comment(photoId uint64, authorId uint64, text string
 		COMMIT;
 		`,
 		authorId, photoId, text, timeOfCreation, photoId)
-	if err != nil {return 0, err}
-	
+	if err != nil {
+		return 0, err
+	}
+
 	id, err := result.LastInsertId()
-	if err != nil {return 0, err}
+	if err != nil {
+		return 0, err
+	}
 
 	return uint64(id), nil
 }

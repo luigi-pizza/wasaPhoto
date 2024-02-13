@@ -19,37 +19,43 @@ func (db *appdbimpl) Select_postList(requestingUser uint64, requestedUser uint64
 			authorId = ? AND
 		ORDER BY 
 			photos.timeOfCreation DESC
-		LIMIT 24 OFFSET ?`, 
+		LIMIT 24 OFFSET ?`,
 		requestingUser, requestedUser, 24*page_numb)
 
-	if err != nil {return postList, err}
+	if err != nil {
+		return postList, err
+	}
 	defer rows.Close()
 
 	postList.PageNumber = page_numb
 	for rows.Next() {
 		var (
 			photoid        uint64
-			username	   string
-			caption        string     
-			timeOfCreation int64     
-			likes          uint64     
-			comments       uint64     
-			isLiked        bool       
+			username       string
+			caption        string
+			timeOfCreation int64
+			likes          uint64
+			comments       uint64
+			isLiked        bool
 		)
 
-		if err := rows.Scan(&photoid, &username, &caption, &timeOfCreation, &likes, &comments, &isLiked); err != nil {return postList, err}
-		
-		postList.Posts = append(postList.Posts, schema.Post {
-			Id: 			photoid,
-			Author: 		schema.ReducedUser{ Id: requestedUser, Username: username },
-			Caption: 		caption,
-			Likes: 			likes,
-			Comments: 		comments,
+		if err := rows.Scan(&photoid, &username, &caption, &timeOfCreation, &likes, &comments, &isLiked); err != nil {
+			return postList, err
+		}
+
+		postList.Posts = append(postList.Posts, schema.Post{
+			Id:             photoid,
+			Author:         schema.ReducedUser{Id: requestedUser, Username: username},
+			Caption:        caption,
+			Likes:          likes,
+			Comments:       comments,
 			TimeOfCreation: timeOfCreation,
-			IsLiked: 		isLiked,
+			IsLiked:        isLiked,
 		})
 	}
 
-	if err := rows.Err(); err != nil { return postList, err }
+	if err := rows.Err(); err != nil {
+		return postList, err
+	}
 	return postList, err
 }

@@ -1,8 +1,8 @@
 package api
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/luigi-pizza/wasaPhoto/service/api/reqcontext"
@@ -12,7 +12,7 @@ import (
 )
 
 func (rt *_router) post_photo(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	
+
 	// parse request
 	err := r.ParseMultipartForm(filesystem.MaxRequestSize)
 	if err != nil {
@@ -73,8 +73,13 @@ func (rt *_router) post_photo(w http.ResponseWriter, r *http.Request, ps httprou
 	// Save photo to file system
 	err = filesystem.SavePhoto(file, photoId)
 	if err != nil {
-		_ = rt.db.Delete_photo(photoId)
-		ctx.Logger.WithError(err).WithField("photoId", photoId).Error("post-photo: error in filesystem-save, check photoId")
+		err = rt.db.Delete_photo(photoId)
+		if err != nil {
+			ctx.Logger.WithError(err).WithField("photoId", photoId).Error("post-photo: error in filesystem-save, check photoId")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		ctx.Logger.WithError(err).WithField("photoId", photoId).Error("post-photo: error in filesystem-save, reverted")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -84,11 +89,11 @@ func (rt *_router) post_photo(w http.ResponseWriter, r *http.Request, ps httprou
 	photo := schema.Post{
 		Id:             photoId,
 		Author:         author,
-		Caption: 		caption,
-		Likes:			0,
-		Comments:		0,
+		Caption:        caption,
+		Likes:          0,
+		Comments:       0,
 		TimeOfCreation: now,
-		IsLiked:		false,
+		IsLiked:        false,
 	}
 
 	w.Header().Set("content-type", "application/json")

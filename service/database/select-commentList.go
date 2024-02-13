@@ -22,10 +22,12 @@ func (db *appdbimpl) Select_commentList(user_id uint64, post_id uint64, page_num
 			)
 		ORDER BY 
 			comments.timeOfCreation DESC
-		LIMIT 24 OFFSET ?`, 
+		LIMIT 24 OFFSET ?`,
 		post_id, user_id, 24*page_numb)
-	
-	if err != nil {return commentList, err}
+
+	if err != nil {
+		return commentList, err
+	}
 	defer rows.Close()
 
 	commentList.PageNumber = page_numb
@@ -37,17 +39,21 @@ func (db *appdbimpl) Select_commentList(user_id uint64, post_id uint64, page_num
 			text      string
 			creation  int64
 		)
-		
-		if err := rows.Scan(&commentId, &authorId, &username, &text, &creation); err != nil {return commentList, err}
 
-		commentList.Comments = append(commentList.Comments, schema.Comment {
-			Id: commentId,
-			Author: schema.ReducedUser{Id:authorId, Username: username},
-			CommentText: text,
+		if err := rows.Scan(&commentId, &authorId, &username, &text, &creation); err != nil {
+			return commentList, err
+		}
+
+		commentList.Comments = append(commentList.Comments, schema.Comment{
+			Id:             commentId,
+			Author:         schema.ReducedUser{Id: authorId, Username: username},
+			CommentText:    text,
 			TimeOfCreation: creation,
 		})
 	}
 
-	if err := rows.Err(); err != nil {return commentList, err}
+	if err := rows.Err(); err != nil {
+		return commentList, err
+	}
 	return commentList, err
 }

@@ -2,8 +2,8 @@ package api
 
 import (
 	"net/http"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/gofrs/uuid"
 	"github.com/julienschmidt/httprouter"
@@ -46,7 +46,7 @@ func (rt *_router) wrap(fn httpRouterHandler, authRequired bool) func(http.Respo
 			if len(authFields) != 2 || authFields[0] != "Bearer" {
 				ctx.Logger.Error("Authorization-header: bad formatting")
 				w.WriteHeader(http.StatusUnauthorized)
-				return 
+				return
 			}
 
 			userId, err := strconv.ParseUint(authFields[1], 10, 64)
@@ -70,7 +70,7 @@ func (rt *_router) wrap(fn httpRouterHandler, authRequired bool) func(http.Respo
 
 			// Authorised
 			ctx.Logger.Debug("Authorization-header: valid")
-			ctx.Uid  = userId
+			ctx.Uid = userId
 		}
 
 		// Call the next handler in chain (usually, the handler function for the path)

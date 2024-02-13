@@ -22,14 +22,20 @@ func (db *appdbimpl) Insert_user(username string) (uint64, bool, error) {
 	if errors.Is(err, sql.ErrNoRows) {
 
 		result, err := db.c.Exec(`INSERT INTO users(username) VALUES (?);`, username)
-		if err != nil {return id, false, err}
+		if err != nil {
+			return id, false, err
+		}
 
 		res, err := result.LastInsertId()
-		if err != nil {return id, false, err}
+		if err != nil {
+			return id, false, err
+		}
 
 		return uint64(res), true, nil
 	}
-	if err != nil {return id, false, err}
+	if err != nil {
+		return id, false, err
+	}
 	return id, false, nil
 
 }
