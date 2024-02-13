@@ -31,8 +31,10 @@ func (db *appdbimpl) Select_completeUser(requestingUser uint64, requestedUser ui
 			(SELECT EXISTS(SELECT TRUE FROM Bans WHERE bannerId = ? AND bannedId = ?)) AS isBanned
 		FROM users
 		WHERE users.id = ?`,
-		requestedUser, requestedUser, requestedUser, requestedUser,
-		requestedUser, requestingUser, requestedUser, requestingUser).Scan(
+		requestedUser, requestedUser, requestedUser,
+		requestingUser, requestedUser,
+		requestingUser, requestedUser,
+		requestedUser).Scan(
 		&username, &numberOfFollowers, &accountsFollowed, &numberOfPosts, &isFollowed, &isBanned,
 	)
 
