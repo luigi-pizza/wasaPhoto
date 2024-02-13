@@ -539,7 +539,7 @@ paths:
   /stream:
     description: endpoint allowing an authenticated user to fetch its photo stream.
     get:
-      tags: ["user"]
+      tags: ["stream"]
       operationId: getMyStream
       summary: Get the authenticated user post stream
       description: |
