@@ -12,16 +12,7 @@ import (
 func (rt *_router) get_userList(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	var request requests.UsernameSearch
-
-	ctx.Logger.Debug("get-userList: decoding - JSON")
-	err := json.NewDecoder(r.Body).Decode(&request)
-	_ = r.Body.Close()
-
-	if err != nil {
-		ctx.Logger.WithError(err).Error("get-userList: error while decoding - JSON")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	request.Username = r.URL.Query().Get("username")
 
 	if !request.IsValid() {
 		ctx.Logger.WithField("username", request.Username).Error("get-userList: invalid resource - 'username'")

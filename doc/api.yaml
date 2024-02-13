@@ -111,7 +111,7 @@ paths:
           in: query
           description: Complete or partial username
           required: true
-          schema: { $ref: "#/components/schemas/Username" }
+          schema: { $ref: "#/components/schemas/UsernamePrompt" }
 
       responses:
         "200": { $ref: "#/components/responses/UserListResponse" }
@@ -921,14 +921,6 @@ components:
       items: { $ref: "#/components/schemas/Comment" }
       minItems: 0
       maxItems: 24
-
-
-    PaginationCursor:
-      description: pagination cursor of the rquest. If ResourceId=0, starting content is returned 
-      
-      type: object
-      properties:
-        lastElement: { $ref: "#/components/schemas/ResourceId" }
 
   securitySchemes:
     bearerAuthentication:
