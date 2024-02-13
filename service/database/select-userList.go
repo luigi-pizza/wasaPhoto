@@ -29,5 +29,9 @@ func (db *appdbimpl) Select_userList(requestingUser uint64, prompt string) (sche
 		}
 		result.Users = append(result.Users, user)
 	}
+
+	if err := rows.Err(); err != nil {
+		return result, err
+	}
 	return result, err
 }

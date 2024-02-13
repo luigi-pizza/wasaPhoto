@@ -47,7 +47,9 @@ func (rt *_router) post_login(w http.ResponseWriter, r *http.Request, ps httprou
 
 	result := schema.ReducedUser{Id: uid, Username: request.Username}
 	w.Header().Set("content-type", "application/json")
-	if created { w.WriteHeader(http.StatusCreated) }
+	if created {
+		w.WriteHeader(http.StatusCreated)
+	}
 
 	_ = json.NewEncoder(w).Encode(result)
 }

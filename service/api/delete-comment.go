@@ -8,7 +8,7 @@ import (
 	"github.com/luigi-pizza/wasaPhoto/service/api/reqcontext"
 )
 
-func (rt *_router) delete_comment (w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt *_router) delete_comment(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// check parameter
 	requestedComment, err := strconv.ParseUint(ps.ByName("commentId"), 10, 64)

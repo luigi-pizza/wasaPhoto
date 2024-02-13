@@ -9,7 +9,7 @@ import (
 	"github.com/luigi-pizza/wasaPhoto/service/filesystem"
 )
 
-func (rt *_router) delete_photo (w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt *_router) delete_photo(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// check params
 	requestedPhoto, err := strconv.ParseUint(ps.ByName("postId"), 10, 64)
