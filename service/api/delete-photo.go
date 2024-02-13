@@ -19,7 +19,7 @@ func (rt *_router) delete_photo (w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	// check if requestedPhoto is a real photo_id
+	// check if requestedPhoto is a real photo_id, by idempotecy return 204 if it is not exist
 	isPID, authorId, err := rt.db.IsPhotoId(requestedPhoto)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("delete-photo: error in DB - 'IsPhotoId(requestedPhotoId)'")
@@ -27,15 +27,15 @@ func (rt *_router) delete_photo (w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 	if !isPID {
-		ctx.Logger.WithField("requestedPhotoId", requestedPhoto).Error("delete-photo: resource not found  - 'requestedPhotoId'")
-		w.WriteHeader(http.StatusNotFound)
+		ctx.Logger.Debug("delete-photo: 204")
+		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
 	// check requestingUser is the photo's author
 	if authorId != ctx.Uid {
 		ctx.Logger.Error("delete-photo: forbidden action - 'UnauthorisedDeletionOfResource'")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 

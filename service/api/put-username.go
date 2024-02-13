@@ -49,6 +49,8 @@ func (rt *_router) put_username(w http.ResponseWriter, r *http.Request, ps httpr
 	}
 
 	// send result
-	ctx.Logger.Debug("put-username: 204")
-	w.WriteHeader(http.StatusNoContent)
+	ctx.Logger.Debug("put-username: 200")
+	result := schema.ReducedUser{Id: ctx.Uid, Username: request.Username}
+	w.Header().Set("content-type", "application/json")
+	_ = json.NewEncoder(w).Encode(result)
 }

@@ -85,5 +85,6 @@ func (rt *_router) post_comment(w http.ResponseWriter, r *http.Request, ps httpr
 	// send result
 	ctx.Logger.Debug("post-comment: 201")
 	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(comment)
 }

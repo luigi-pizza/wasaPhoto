@@ -33,7 +33,7 @@ func (rt *_router) delete_comment (w http.ResponseWriter, r *http.Request, ps ht
 	// check requestingUser is the comment's author
 	if authorId != ctx.Uid {
 		ctx.Logger.Error("delete-comment: forbidden action - 'UnauthorisedDeletionOfResource'")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 

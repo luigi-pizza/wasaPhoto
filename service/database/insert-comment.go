@@ -7,7 +7,7 @@ func (db *appdbimpl) Insert_comment(photoId uint64, authorId uint64, text string
 	result, err := db.c.Exec(
 		`
 		BEGIN TRANSACTION;
-		INSERT INTO comments (authorId, photoId, commentText, timeOfCreation) VALUES (?, ?, ?, ?)
+		INSERT INTO comments (authorId, photoId, commentText, timeOfCreation) VALUES (?, ?, ?, ?);
 		UPDATE photos SET comments = comments + 1 WHERE id = ?;
 		COMMIT;
 		`,
