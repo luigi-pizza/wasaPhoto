@@ -31,16 +31,15 @@ export default {
     },
     data() {
         return {
-            showModal: false,
             comments: [],
             token: sessionStorage.getItem('authToken'),
         };
     },
     async mounted() {
-        this.fetchComments();
+        this.getComments();
     },
     methods: {
-        async fetchComments() {
+        async getComments() {
             try {
                 const response = await this.$axios.get(`/photos/${this.photoId}/comments/`, {
                     headers: {
@@ -53,22 +52,19 @@ export default {
                     const statusCode = error.response.status;
                     switch (statusCode) {
                         case 401:
-                            console.error('Access Unauthorized:', error.response.data);
-                            // unauthorized
+                            console.error('Unauthorized: ', error.response.data);
                             break;
                         case 403:
-                            console.error('Access Forbidden:', error.response.data);
-                            // forbidden
+                            console.error('Forbidden Action: ', error.response.data);
                             break;
                         case 404:
-                            console.error('Not Found:', error.response.data);
-                            // not found
+                            console.error('Resource Not Found: ', error.response.data);
                             break;
                         default:
-                            console.error(`Unhandled HTTP Error (${statusCode}):`, error.response.data);
+                            console.error(`Unhandled HTTP Error (${statusCode}): `, error.response.data);
                     }
                 } else {
-                    console.error('Error:', error);
+                    console.error('An error ensued: ', error);
                 }
             }
 

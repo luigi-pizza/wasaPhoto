@@ -64,18 +64,14 @@ export default {
                     switch (statusCode) {
                         case 401:
                             console.error('Access Unauthorized:', error.response.data);
-                            // unauthorized
                             this.Text = "You have to log in first";
                             break;
                         case 403:
                             console.error('Access Forbidden:', error.response.data);
-                            // forbidden
                             break;
                         case 404:
                             console.error('Not Found:', error.response.data);
-                            // not found
                             this.Text = "No users with such username";
-
                             break;
                         default:
                             console.error(`Unhandled HTTP Error (${statusCode}):`, error.response.data);

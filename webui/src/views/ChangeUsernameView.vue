@@ -1,7 +1,7 @@
 <template>
-    <div class="container d-flex justify-content-center align-items-center vh-100">
-        <form @submit.prevent="submitForm" class="border p-4 rounded">
-            <h2 class="mb-4">Change your username</h2>
+    <div class="changeUsername-container">
+        <form @submit.prevent="submitForm" class="changeUsername-form">
+            <h2 class="mb-4">Change Username</h2>
             <div class="mb-3">
                 <label for="inputName" class="form-label">New Name</label>
                 <input type="text" class="form-control" id="newname" aria-describedby="usernameHelp"
@@ -41,7 +41,6 @@ export default {
                     },
                 };
                 const response = await this.$axios.put(`/settings/username`, { username: this.newname }, config);
-                console.log("Name changed");
                 this.changedSuccess = true;
                 this.errore = false;
             }
@@ -83,4 +82,32 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+.changeUsername-container {
+    display: flex;
+    justify-content: center;
+    text-align:center;
+    align-items: center;
+    height: 100vh;
+}
+
+.changeUsername-form {
+    padding: 20px;
+    border: none;
+    align-items: center;
+    border-radius: 8px;
+}
+
+.changeUsername-label {
+    padding: 3px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.changeUsername-btn {
+    align-self: center;
+}
+
+</style>
   

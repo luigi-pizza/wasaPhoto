@@ -55,20 +55,20 @@ export default {
   },
   props: {
     photoId: Number,
-    likeCount: Number,
     authorName: String,
     caption: String,
     date: Number,
+    likes: Number,
     Liked: Boolean,
   },
   data() {
     return {
-      imgSrc: null,
-      isLiked: this.Liked,
-      LikeCount: this.likeCount,
       authorId: 0,
       isMe: false,
+      imgSrc: null,
       notBanned: true,
+      isLiked: this.Liked,
+      LikeCount: this.likes,
       modalId: String(this.photoId),
     };
   },
@@ -91,16 +91,13 @@ export default {
           this.notBanned = false;
           switch (statusCode) {
             case 401:
-              console.error('Access Unauthorized:', error.response.data);
-              // unauthorized
+              console.error('Unauthorized:', error.response.data);
               break;
             case 403:
-              console.error('Access Forbidden:', error.response.data);
-              // forbidden
+              console.error('Forbidden Action:', error.response.data);
               break;
             case 404:
               console.error('Not Found:', error.response.data);
-              // not found
               break;
             default:
               console.error(`Unhandled HTTP Error (${statusCode}):`, error.response.data);

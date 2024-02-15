@@ -30,7 +30,7 @@
         <hr />
         <div class="photos">
             <PhotoCard v-for="photo in photoList" :key="photo.photoId" :photoId="photo.photoId" :date="photo.creation"
-                :authorName="photo.author.username" :likeCount="photo.numberOfLikes" :caption="photo.caption" :Liked="photo.isliked"/>
+                :authorName="photo.author.username" :likes="photo.numberOfLikes" :caption="photo.caption" :Liked="photo.isliked"/>
         </div>
     </div>
 </template>
@@ -116,17 +116,14 @@ export default {
                             this.userName = "You have to login first"
                         case 401:
                             console.error('Access Unauthorized:', error.response.data);
-                            // unauthorized
                             this.userName = "You are not logged in"
                             break;
                         case 403:
                             console.error('Access Forbidden:', error.response.data);
-                            // forbidden
                             this.userName = "You have been banned by the user"
                             break;
                         case 404:
                             console.error('Not Found:', error.response.data);
-                            // not found
                             if (userId === "null") {
                                 this.userName = "You are not logged in";
                             }

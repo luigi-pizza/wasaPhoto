@@ -51,8 +51,8 @@ export default {
             this.navigateToMyPage()
         },
         navigateToMyPage() {
-            this.$router.push('/users/' + this.identifier.userId);
             location.reload();
+            this.$router.push('/users/' + this.identifier.userId);
         },
         SaveToSessionStorage() {
             const bearerToken = `${this.identifier.userId}`;

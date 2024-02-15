@@ -16,7 +16,7 @@
       </div>
 
       <button type="submit" class="btn btn-primary btn-lg" style="margin: 20px;">Upload</button>
-      <p v-if="uploadSuccess" class="alert alert-success mt-3">{{ endText }}</p>
+      <p v-if="uploadSuccess" class="alert alert-success mt-3">{{ photoUploadResult }}</p>
     </form>
   </div>
 </template>
@@ -30,7 +30,7 @@ export default {
       photo: null,
       caption: '',
       uploadSuccess: false,
-      endText: '',
+      photoUploadResult: '',
     };
   },
   methods: {
@@ -55,7 +55,7 @@ export default {
       try {
         const response = await this.$axios.post(`/photos/`, formData, config);
         console.log('Photo uploaded successfully', response.data);
-        this.endText = "Photo uploaded!";
+        this.photoUploadResult = "Photo uploaded!";
         this.uploadSuccess = true;
       }
       catch (error) {
@@ -63,7 +63,7 @@ export default {
         switch (statusCode) {
           case 401:
             console.error('Access Unauthorized');
-            this.endText = "You have to log in to post a photo";
+            this.photoUploadResult = "You have to log in to post a photo";
             this.uploadSuccess = true;
             break;
           default:
