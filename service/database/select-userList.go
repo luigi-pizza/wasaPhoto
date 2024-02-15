@@ -13,7 +13,7 @@ func (db *appdbimpl) Select_userList(requestingUser uint64, prompt string) (sche
 		SELECT * FROM users
 		WHERE username LIKE '%' || ? || '%' AND
 		NOT EXISTS (SELECT 1 FROM bans WHERE 
-			bannerId = users.userId AND bannedId = ?)
+			bannerId = users.id AND bannedId = ?)
 		ORDER BY LENGTH(username) ASC
 		LIMIT 24;`, prompt, requestingUser)
 

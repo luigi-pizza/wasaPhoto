@@ -16,7 +16,7 @@ func (rt *_router) get_userComplete(w http.ResponseWriter, r *http.Request, ps h
 
 	// check correctness of input
 	if err != nil {
-		ctx.Logger.Error("get-userComplete: unable to parse parameter - 'userId'")
+		ctx.Logger.WithField("passedVal", ps.ByName("userId")).Error("get-userComplete: unable to parse parameter - 'userId'")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

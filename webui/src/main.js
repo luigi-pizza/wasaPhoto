@@ -8,6 +8,11 @@ import LoadingSpinner from './components/LoadingSpinner.vue'
 import './assets/dashboard.css'
 import './assets/main.css'
 
+export const LOGIN = '/login';
+export const USERS = '/users/';
+export const MY_CONSTANT = '/login';
+
+
 const app = createApp(App)
 app.config.globalProperties.$axios = axios;
 app.component("ErrorMsg", ErrorMsg);

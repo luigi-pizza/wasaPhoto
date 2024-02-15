@@ -12,13 +12,13 @@ func (db *appdbimpl) Select_stream(requestingUser uint64, page_numb uint64) (sch
 		SELECT 
 			photos.id, 
 			photos.authorId, users.username,
-			photos.caption, photos.timeOfCreation, photos.likes, photos.comments
+			photos.caption, photos.timeOfCreation, photos.likes, photos.comments,
 			(SELECT EXISTS(SELECT TRUE FROM likes WHERE photoId = photos.id AND userId = ?)) AS isLiked
 		FROM 
 			photos INNER JOIN users ON users.id = photos.authorId
 		WHERE 
-			photos.authorId IN (SELECT followedId FROM follows WHERE followerId = ?) AND
-		ORDER BY Photo.TimeOfCreation DESC
+			photos.authorId IN (SELECT followedId FROM follows WHERE followerId = ?)
+		ORDER BY photos.timeOfCreation DESC
 		LIMIT 24 OFFSET ?`,
 		requestingUser, requestingUser, 24*page_numb)
 

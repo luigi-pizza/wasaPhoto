@@ -11,12 +11,12 @@ func (db *appdbimpl) Select_commentList(user_id uint64, post_id uint64, page_num
 	rows, err := db.c.Query(`
 		SELECT 
 			comments.id, 
-			comments.authorId, users.username,
+			comments.authorId, users.username, comments.photoId,
 			comments.commentText, comments.timeOfCreation
 		FROM 
 			comments INNER JOIN users ON users.id = comments.authorId 
 		WHERE 
-			photoId = ? AND
+			comments.photoId = ? AND
 			NOT EXISTS (
 				SELECT 1 FROM bans WHERE bannerId = comments.authorId AND bannedId = ?
 			)
@@ -35,18 +35,20 @@ func (db *appdbimpl) Select_commentList(user_id uint64, post_id uint64, page_num
 		var (
 			commentId uint64
 			authorId  uint64
+			photoId   uint64
 			username  string
 			text      string
 			creation  int64
 		)
 
-		if err := rows.Scan(&commentId, &authorId, &username, &text, &creation); err != nil {
+		if err := rows.Scan(&commentId, &authorId, &username, &photoId, &text, &creation); err != nil {
 			return commentList, err
 		}
 
 		commentList.Comments = append(commentList.Comments, schema.Comment{
 			Id:             commentId,
 			Author:         schema.ReducedUser{Id: authorId, Username: username},
+			PhotoId:        photoId,
 			CommentText:    text,
 			TimeOfCreation: creation,
 		})

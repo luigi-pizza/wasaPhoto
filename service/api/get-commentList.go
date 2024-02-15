@@ -57,7 +57,7 @@ func (rt *_router) get_commentList(w http.ResponseWriter, r *http.Request, ps ht
 	}
 
 	// Authorised -> get result
-	commentList, err := rt.db.Select_commentList(ctx.Uid, requestedUser, requestedPage)
+	commentList, err := rt.db.Select_commentList(ctx.Uid, requestedPhoto, requestedPage)
 	commentList.PageNumber = requestedPage
 
 	// check for DB errors

@@ -30,6 +30,11 @@ func (rt *_router) post_comment(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 	_ = r.Body.Close()
+	if len(text.Text) == 0 {
+		ctx.Logger.Error("post-comment: invalid resource - comment.length() > 0")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	// check if requestedPhoto is a real photo_id
 	isPID, requestedUser, err := rt.db.IsPhotoId(requestedPhoto)

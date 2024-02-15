@@ -11,12 +11,12 @@ func (db *appdbimpl) Select_postList(requestingUser uint64, requestedUser uint64
 		SELECT 
 			photos.id, 
 			users.username,
-			photos.caption, photos.timeOfCreation, photos.likes, photos.comments
+			photos.caption, photos.timeOfCreation, photos.likes, photos.comments,
 			(SELECT EXISTS(SELECT TRUE FROM likes WHERE photoId = photos.id AND userId = ?)) AS isLiked
 		FROM 
 			photos INNER JOIN users ON users.id = photos.authorId 
 		WHERE 
-			authorId = ? AND
+			authorId = ?
 		ORDER BY 
 			photos.timeOfCreation DESC
 		LIMIT 24 OFFSET ?`,
