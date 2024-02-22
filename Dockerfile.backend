@@ -13,3 +13,6 @@ WORKDIR /app/
 COPY --from=builder /app/webapi ./
 
 CMD ["/app/webapi"]
+
+# docker build -t wasaphoto-backend:latest -f Dockerfile.backend .
+# docker run -it --rm -p 3000:3000 wasaphoto-backend:latest

@@ -51,8 +51,9 @@ export default {
             this.navigateToMyPage()
         },
         navigateToMyPage() {
+            localStorage.setItem('loginExecuted', '1')
             location.reload();
-            this.$router.push('/users/' + this.identifier.userId);
+            // this.$router.push('/users/' + this.identifier.userId);
         },
         SaveToSessionStorage() {
             const bearerToken = `${this.identifier.userId}`;

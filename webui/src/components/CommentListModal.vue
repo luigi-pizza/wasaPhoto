@@ -10,7 +10,7 @@
                     <ul class="list-group">
                         <li v-for="comment in comments" :key="comment.id" class="list-group-item">
                             <div>
-                                <strong>{{ comment.publisherName }}</strong>
+                                <strong>{{ comment.author.username }}</strong>
                             </div>
                             <div>{{ comment.text }}</div>
                             <div v-if="comment.author.userId == this.token">

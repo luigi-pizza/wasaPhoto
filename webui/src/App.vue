@@ -11,17 +11,14 @@ export default {
 	},
 	async mounted() {
 		this.username = sessionStorage.getItem('username');
-		if (this.username !== null) {
-			if (localStorage.getItem('reloaded')) {
-				// The page was just reloaded. Clear the value from local storage
-				// so that it will reload the next time this page is visited.
-				localStorage.removeItem('reloaded');
-			} else {
-				// Set a flag so that we know not to reload the page twice.
-				localStorage.setItem('reloaded', '1');
-			}
-		} else {
+		if (this.username === null) {
 			this.$router.push('/login');
+		}
+		else {
+			if (localStorage.getItem('loginExecuted')) {
+				localStorage.removeItem('loginExecuted');
+				this.$router.push('/users/' + sessionStorage.getItem('userId'));
+			}
 		}
     },
 	methods: {
@@ -57,7 +54,7 @@ export default {
 								<svg class="feather">
 									<use href="/feather-sprite-v4.29.0.svg#home" />
 								</svg>
-								Profile
+								Profile: {{ username }}
 							</RouterLink>
 						</li>
 						<li class="nav-item">
